@@ -1,15 +1,8 @@
 import discord
 import os,os.path,sys
 import asyncio,random,string
-import traceback,wave,colorama
 import requests,json
-import urllib.parse,urllib.request,re,builtins
-from tokenize import Name
-from discord import ui, InputText, Permissions 
 from discord.ext import commands
-from discord.ext.commands import Bot
-from discord.ui import View,select,Button,Modal,text_input
-from discord.utils import get
 from datetime import time,timedelta,datetime
 from dotenv import load_dotenv
 from colorama import Fore,init,Back,Style
@@ -19,7 +12,9 @@ now_time=datetime.now().__format__("%Z : %Y/%m/%d %H:%M:%S")
 os.system("title BOT")
 count=0
 load_dotenv()
+admin=os.getenv("Admin")
 prefix=os.getenv("prefix")
+SupportServer=os.getenv("Support_server")
 paths=os.path.dirname(os.path.realpath(__file__))
 bot=commands.Bot(command_prefix=f"{prefix}", help_command=None, intents=discord.Intents.all())
 buttons=ButtonsClient(bot)
@@ -34,9 +29,9 @@ async def status2():
  await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=f"{prefix}helpでhelpを表示"))
 async def changestatus():
   while True:
-    await asyncio.sleep(7.5)
+    await asyncio.sleep(15)
     await status1()
-    await asyncio.sleep(7.5)
+    await asyncio.sleep(15)
     await status2()
 
 Interaction=discord.Interaction
@@ -54,7 +49,7 @@ async def on_ready():
     members +=guild.member_count - 1
   print(Fore.GREEN + f"----------------------------------------")
   print(Fore.RED + f"Bot Info")
-  print(Fore.RED + f"Bot Name : {}")
+  print(Fore.RED + f"Bot Name : {bot.user.name}")
   print(Fore.RED + f"Bot id ：{bot.user.id}")
   print(Fore.RED + f"Bot Status : {servers} サーバー | {members} メンバー")
   print(Fore.RED + f"Server : {servers}")
@@ -96,10 +91,10 @@ async def ping(Interaction):
 async def info(Interaction):
     embed=discord.Embed(title=f"{bot.user.name} : {bot.user.id}", description="pythonで作成されたdiscord botです。", color=0xeee657)
     embed.add_field(name=f"実行者", value=f"{Interaction.author}")
-    embed.add_field(name=f"作成者", value=f"{os.getenv("Admin")}")
+    embed.add_field(name=f"作成者", value=f"{admin}")
     embed.add_field(name=f"導入数", value=f"{len(bot.guilds)}")
     embed.add_field(name=f"bot招待", value=f"リンクは[こちら](https://discord.com/api/oauth2/authorize?bot_id={bot.user.id}&permissions=8&scope=bot%20applications.commands)")
-    embed.add_field(name=f"サポートサーバー", value=f"招待リンクは[こちら]({(os.getenv("Support_server"))})")
+    embed.add_field(name=f"サポートサーバー", value=f"招待リンクは[こちら]({SupportServer})")
     delete_after_1st=await Interaction.send(embed=embed)
     delete_after=await buttons.send(
       content=None,
@@ -167,7 +162,7 @@ async def setup(Interaction):
   await c3.create_voice_channel("・🎧｜音楽室-3")
   await c3.create_voice_channel("・🎧｜音楽室-4")
   await c3.create_voice_channel("━━━━━━━━━━━━━━━━")
-  a=await guild.create_role(name=f"Admin", permissions=Permissions.all(), color=discord.Color.gold(), reason="setup...")
+  a=await guild.create_role(name=f"Admin", permissions=discord.Permissions.all(), color=discord.Color.gold(), reason="setup...")
   role=guild.get_role(a.id)
   member=guild.get_member(int(Interaction.author.id))
   me=guild.get_member(int(bot.user.id))
@@ -197,29 +192,6 @@ async def nuke(Interaction):
     await channel.delete()
     await channel2.send(embed=msg, delete_after=120)
     return
-@bot.message_command(name="メッセージを通報")
-async def message(Interaction, message:discord.Message):
-  class ModalMenu(ui, title=f"通報用"):
-    reportreason=ui.TextInput(label="通報する理由を書いてね！",style=discord.InputTextStyle.short,placeholder="通報理由", required=None)
-    if reportreason=="None":
-      reportreason="無し"
-    async def submit(Interaction):
-        @buttons.click
-        async def report_click(Interaction):
-          embeds=discord.Embed(title=f"担当者 : {Interaction.author}",description="ボタンを削除します", color=discord.Color.green())
-          await sended2.delete()
-          await Interaction.send(embed=embeds)
-        @buttons.click
-        async def report_not_click(Interaction):
-          await sended.delete()
-          await sended2.delete()
-        embed=discord.Embed(title=f"メッセージの通報",description=f"通報されたメッセージは[こちら](https://discord.com/channels/{Interaction.guild.id}/{Interaction.channel.id}/{message.id})", color=discord.Color.red())
-        embed.add_field(name=f"通報理由",value=f"")
-        embed.set_author(name=message.author.name, icon_url=message.author.avatar.url)
-        embed.set_footer(text=f"実行者 | {Interaction.author}・{now_time}",icon_url=Interaction.author.avatar.url)
-        sended=await Interaction.send(embed=embed)
-        sended2=await buttons.send(content=None,embed=None,channel=Interaction.channel.id,components=[ActionRow([Button(label="この通報を担当する",style=ButtonType().Success,custom_id=report_click,disabled=False,),[Button(label="無視する",style=ButtonType().Danger,custom_id=report_not_click,disabled=False)]])])
-  await Interaction.response.send_modal(ModalMenu())
 @bot.slash_command(name=f"test",description=f"test")
 @commands.is_owner()
 async def TEST(Interaction):
@@ -264,11 +236,12 @@ async def help(Interaction):
     page4.add_field(name=f"{prefix}purge - {prefix}clear", value="メッセージを削除する - メッセージの管理")
     page4.set_footer(text=f"ページ 4/6・実行者 | {Interaction.author} : 5分間操作がなかったら削除されます・{now_time}",icon_url=Interaction.author.avatar.url)
     page5=discord.Embed(title=f"宣伝 - {bot.user.name}",description=f"ページ5 - 作成者")
-    page5.add_field(name=f"youtube (main)",value=f"メインアカウントは[こちら](https://www.youtube.com/@{os.getenv("Youtube_bundle_name")})",inline=False)
-    page5.add_field(name=f"twiiter",value=f"ツイッターアカウントは[こちら](https://twitter.com/{os.getenv("twitter_name")})",inline=False)
+    page5.add_field(name=f"youtube (main)",value=f"メインアカウントは[こちら](https://www.youtube.com/@ReaCh1104Main)",inline=False)
+    page5.add_field(name=f"youtube (sub)",value=f"サブアカウントは[こちら](https://www.youtube.com/@ReaCh1104Sub)",inline=False)
+    page5.add_field(name=f"twiiter",value=f"ツイッターアカウントは[こちら](https://twitter.com/ReaCh1104)",inline=False)
     page5.set_footer(text=f"ページ 5/6・実行者 | {Interaction.author} : 5分間操作がなかったら削除されます・{now_time}",icon_url=Interaction.author.avatar.url)
     page6=discord.Embed(title=f"botの概要 - {bot.user.name}",description=f"ページ6 - 概要")
-    page6.add_field(name=f"製作者",value=f"{os.getenv("Admin")}")
+    page6.add_field(name=f"製作者",value=f"Rea#1234")
     page6.add_field(name=f"botの概要",value="作成者が趣味で作成しているbotです。")
     page6.set_footer(text=f"ページ 6/6・実行者 | {Interaction.author} : 5分間操作がなかったら削除されます・{now_time}",icon_url=Interaction.author.avatar.url)
     embed_list=[page1,page2,page3,page4,page5,page6]
