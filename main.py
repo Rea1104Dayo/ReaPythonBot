@@ -96,7 +96,7 @@ async def ping(Interaction):
 async def info(Interaction):
     embed=discord.Embed(title=f"{bot.user.name} : {bot.user.id}", description="pythonで作成されたdiscord botです。", color=0xeee657)
     embed.add_field(name=f"実行者", value=f"{Interaction.author}")
-    embed.add_field(name=f"作成者", value=f"{(os.getenv("Admin")}")
+    embed.add_field(name=f"作成者", value=f"{os.getenv("Admin")}")
     embed.add_field(name=f"導入数", value=f"{len(bot.guilds)}")
     embed.add_field(name=f"bot招待", value=f"リンクは[こちら](https://discord.com/api/oauth2/authorize?bot_id={bot.user.id}&permissions=8&scope=bot%20applications.commands)")
     embed.add_field(name=f"サポートサーバー", value=f"招待リンクは[こちら]({(os.getenv("Support_server"))})")
