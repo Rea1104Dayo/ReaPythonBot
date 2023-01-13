@@ -583,7 +583,7 @@ async def on_guild_join(guild):
 @bot.slash_command(name=f"kick",description=f"kickします。")
 @commands.has_permissions(kick_members=True)
 async def kick(Interaction, user:discord.Option(discord.User, required=True, description="kickするユーザー"), *, reason:discord.Option(str, required=False, description=f"理由を入力してね")):
-    if not reason:
+    if reason==None:
       reason="無し"
     embed=discord.Embed(color=discord.Color.red())
     embed.set_author(name="kick")
@@ -596,7 +596,7 @@ async def kick(Interaction, user:discord.Option(discord.User, required=True, des
 @bot.slash_command(name=f"ban",description=f"banします。")
 @commands.has_permissions(ban_members=True)
 async def ban(Interaction, user:discord.Option(discord.User, required=True, description="banするユーザー"), *, reason:discord.Option(str, required=False, description=f"理由を入力してね")):
-    if not reason:
+    if reason==None:
       reason="無し"
     embed=discord.Embed(color=discord.Color.red())
     embed.set_author(name="ban")
@@ -609,7 +609,7 @@ async def ban(Interaction, user:discord.Option(discord.User, required=True, desc
 @bot.slash_command(name=f"unban",description=f"banを解除します。")
 @commands.has_permissions(ban_members=True)
 async def unban(Interaction, user:discord.Option(discord.User, required=True, description="unbanするユーザー"), *, reason:discord.Option(str, required=False, description=f"理由を入力してね")):
-    if not reason:
+    if reason==None:
       reason="無し"
     embed=discord.Embed(color=discord.Color.red())
     embed.set_author(name="unban")
