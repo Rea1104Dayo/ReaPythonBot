@@ -34,55 +34,10 @@ async def status2():
  await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=f"{prefix}helpでhelpを表示"))
 async def changestatus():
   while True:
-    await asyncio.sleep(15)
+    await asyncio.sleep(7.5)
     await status1()
-    await asyncio.sleep(15)
+    await asyncio.sleep(7.5)
     await status2()
-async def send():
-       guild=bot.get_guild(1030125883228438558)
-       guild_channel=bot.get_channel(1042018681632329819)
-       count=100000000
-       rolelist=[]
-       for role in guild.roles:
-        if role.name!="@everyone":
-          rolelist.append(role.mention)
-       rolelist=",".join(rolelist)
-       textlist=[]
-       for text in guild.text_channels:
-        textlist.append(text.mention)
-       textlist=",".join(textlist)
-       vclist=[]
-       for vc in guild.voice_channels:
-        vclist.append(vc.mention)
-       vclist=",".join(vclist)
-       categorylist=[]
-       for category in guild.categories:
-        categorylist.append(category.mention)
-       categorylist=",".join(categorylist)
-       roles=len(guild.roles)
-       roles=roles-1
-       await guild_channel.purge(limit=count)
-       embed=discord.Embed(title=f"botが起動しました", description=f"起動しました。(起動時刻 : {now_time})", color=discord.Colour.blue())
-       embed.set_thumbnail(url=guild.icon.url)
-       embed.add_field(name=f"サーバーオーナー", value=f"{guild.owner.mention}", inline=False)
-       embed.add_field(name=f"サーバーネーム", value=f"{guild.name}", inline=False)
-       embed.add_field(name=f"サーバーid", value=f"{guild.id}", inline=False)
-       embed.add_field(name=f"全ロール({roles})",value=rolelist,inline=False)
-       embed.add_field(name=f"**チャンネル数**", value=f"{len(guild.text_channels)}テキストチャンネル[{textlist}", inline=False)
-       embed.add_field(name=f"**チャンネル数**", value=f"{len(guild.voice_channels)}ボイスチャンネル[{vclist}]",inline=False)
-       embed.add_field(name=f"**チャンネル数**", value=f"{len(guild.categories)}カテゴリー[{categorylist}]", inline=False)
-       embed.add_field(name=f"サーバーブースト", value=f"{guild.premium_subscription_count}", inline=False)
-       embed.add_field(name=f"メンバー数", value=
-f"""
-トータル数 : {len(guild.members)}
-ユーザー数 : {sum(1 for member in guild.members if not member.bot)}
-ボット数 : {sum(1 for member in guild.members if member.bot)}
-""", inline=False)
-       embed.add_field(name=f"サーバー設立日", value=guild.created_at.__format__("%Z : %Y/%m/%d %H:%M:%S"), inline=False)
-       embed.set_author(name=now_time)
-       embed.set_footer(text=now_time)
-       await guild_channel.send(embed=embed)
-       await changestatus()
 
 Interaction=discord.Interaction
 
@@ -111,7 +66,7 @@ async def on_ready():
   print(Fore.CYAN + f"tokenをロードしました")
   print(Fore.CYAN + f"prefixをロードしました")
   print(Fore.GREEN + f"----------------------------------------"+ Fore.RESET + f"")
-  await send()
+  await changestatus()
 
 @bot.slash_command(name=f"nitrogen",description=f"nitroGen")
 async def gen(Interaction, counts: discord.Option(int, required=True,  description="nitroを生成する数")):
