@@ -2,7 +2,12 @@ import discord
 import os,os.path,sys
 import asyncio,random,string
 import requests,json
+from discord import Permissions, app_commands, Intents, Client, Interaction, Member
 from discord.ext import commands
+from discord.ext.commands import Bot
+from discord.app_commands import CommandTree
+from discord.utils import get
+from discord.ui import View,select,Button,Modal,text_input
 from datetime import time,timedelta,datetime
 from dotenv import load_dotenv
 from colorama import Fore,init,Back,Style
@@ -34,7 +39,7 @@ async def changestatus():
     await asyncio.sleep(15)
     await status2()
 
-Interaction=discord.Interaction
+ctx=discord.Interaction
 
 slot=["1","2","3","4","5","6","7","8","9"]
 
@@ -57,14 +62,15 @@ async def on_ready():
   print(Fore.GREEN + f"----------------------------------------")
   print(Fore.BLUE + f"py-cord ( discord.py ) Info")
   print(Fore.BLUE + f"py-cord ( discord.py ) Version ：{discord.__version__}")
+  Synced=await bot.tree.sync()
   print(Fore.GREEN + f"----------------------------------------")
-  print(Fore.CYAN + f"tokenをロードしました")
-  print(Fore.CYAN + f"prefixをロードしました")
+  print(Fore.CYAN + f"{len(Synced)}個のコマンドを同期しました")
   print(Fore.GREEN + f"----------------------------------------"+ Fore.RESET + f"")
   await changestatus()
 
-@bot.slash_command(name=f"nitrogen",description=f"nitroGen")
-async def gen(Interaction, counts: discord.Option(int, required=True,  description="nitroを生成する数")):
+@bot.tree.command(name=f"nitrogen",description=f"nitroGen")
+@app_commands.describe(counts="nitroを生成する数")
+async def gen(ctx: discord.Interaction, counts:int):
   i=0
   if counts>101:
     counts=100
@@ -73,33 +79,31 @@ async def gen(Interaction, counts: discord.Option(int, required=True,  descripti
     count=i
     count+=1
     i=count
-    print(Fore.BLUE+f"\n{i}"+Fore.GREEN+"/"+Fore.RED+f"{counts}\n\n"+Fore.LIGHTBLUE_EX+"実行者 "+Fore.RESET+"> "+Fore.GREEN+f"{Interaction.author}")
-    await Interaction.send(Nitro + f"\n{i}/{counts}\n実行者 > {Interaction.author}", delete_after=50)
+    print(Fore.BLUE+f"\n{i}"+Fore.GREEN+"/"+Fore.RED+f"{counts}\n\n"+Fore.LIGHTBLUE_EX+"実行者 "+Fore.RESET+"> "+Fore.GREEN+f"{ctx.author.name}")
+    await ctx.reseponce.send_message(Nitro + f"\n{i}/{counts}\n実行者 > {ctx.author.name}", delete_after=50)
     if i>counts-1:
-      print(Fore.RESET+f"\nNitroGenが終了しました"+Fore.BLACK+"-"+Fore.BLUE+f"{i}"+Fore.GREEN+"/"+Fore.RED+f"{counts}"+Fore.RESET+","+Fore.LIGHTBLUE_EX+"実行者 "+Fore.RESET+"> "+Fore.GREEN+f"{Interaction.author}")
-      await Interaction.send(f"NitroGenが終了しました-{i}/{counts}, 実行者 > {Interaction.author}",delete_after=50)
+      print(Fore.RESET+f"\nNitroGenが終了しました"+Fore.BLACK+"-"+Fore.BLUE+f"{i}"+Fore.GREEN+"/"+Fore.RED+f"{counts}"+Fore.RESET+","+Fore.LIGHTBLUE_EX+"実行者 "+Fore.RESET+"> "+Fore.GREEN+f"{ctx.author.name}")
+      await ctx.followup.send(f"NitroGenが終了しました-{i}/{counts}, 実行者 > {ctx.author.name}",delete_after=50)
 
-@bot.slash_command(name=f"ping",description=f"pingを表示します")
-async def ping(Interaction):
+@bot.tree.command(name=f"ping",description=f"pingを表示します")
+async def ping(ctx: discord.Interaction):
   raw_ping=bot.latency
   ping=round(raw_ping * 1000)
-  await Interaction.response.send_Interaction(f"<@{bot.user.id}>のPing値は{ping}msです！", ephemeral=True,embed=None)
-  print(f"実行者 | {Interaction.author} | {prefix}pingが使用されました"+Fore.GREEN +f""+Fore.GREEN +f"\n----------------------------------------"+ Fore.RESET + f""+ Fore.RESET + f"")
+  await ctx.response.send_message(f"<@{bot.user.id}>のPing値は{ping}msです！", ephemeral=True,embed=None)
+  print(f"実行者 | {ctx.author.name} | {prefix}pingが使用されました"+Fore.GREEN +f""+Fore.GREEN +f"\n----------------------------------------"+ Fore.RESET + f""+ Fore.RESET + f"")
 
 
-@bot.slash_command(name=f"bot概要",description=f"botの概要を表示します")
-async def info(Interaction):
+@bot.tree.command(name=f"bot概要",description=f"botの概要を表示します")
+async def info(ctx: discord.Interaction):
     embed=discord.Embed(title=f"{bot.user.name} : {bot.user.id}", description="pythonで作成されたdiscord botです。", color=0xeee657)
-    embed.add_field(name=f"実行者", value=f"{Interaction.author}")
+    embed.add_field(name=f"実行者", value=f"{ctx.author.name}")
     embed.add_field(name=f"作成者", value=f"{admin}")
     embed.add_field(name=f"導入数", value=f"{len(bot.guilds)}")
     embed.add_field(name=f"bot招待", value=f"リンクは[こちら](https://discord.com/api/oauth2/authorize?bot_id={bot.user.id}&permissions=8&scope=bot%20applications.commands)")
     embed.add_field(name=f"サポートサーバー", value=f"招待リンクは[こちら]({SupportServer})")
-    delete_after_1st=await Interaction.send(embed=embed)
-    delete_after=await buttons.send(
-      content=None,
-      embed=embed,
-      channel=Interaction.channel.id,
+    await ctx.response.send_message(embed=embed, delete_after=120)
+    dele=await buttons.send(
+      channel=ctx.channel.id,
             components=[
                 ActionRow([
                     Button(
@@ -111,12 +115,11 @@ async def info(Interaction):
             ]
         )
     await asyncio.sleep(120)
-    await delete_after.delete()
-    await delete_after_1st.delete()
-@bot.slash_command(name=f"setup",description=f"設定してなかったら使ってください")
-@commands.has_permissions(administrator=True)
-async def setup(Interaction):
-  guild=Interaction.guild
+    await dele.delete()
+@bot.tree.command(name=f"setup",description=f"設定してなかったら使ってください")
+@app_commands.default_permissions(administrator=True)
+async def setup(ctx: discord.Interaction):
+  guild=ctx.guild
   channels=await guild.fetch_channels()
   for channel in channels:
       await channel.delete()
@@ -164,7 +167,7 @@ async def setup(Interaction):
   await c3.create_voice_channel("━━━━━━━━━━━━━━━━")
   a=await guild.create_role(name=f"Admin", permissions=discord.Permissions.all(), color=discord.Color.gold(), reason="setup...")
   role=guild.get_role(a.id)
-  member=guild.get_member(int(Interaction.author.id))
+  member=guild.get_member(int(ctx.author.id))
   me=guild.get_member(int(bot.user.id))
   b=await guild.create_role(name=f"Bot", color=discord.Color.dark_purple(), reason="setup...")
   role2=guild.get_role(b.id)
@@ -182,32 +185,32 @@ async def setup(Interaction):
   em3=await bot.get_channel(rules.id).send(embed=em)
   em=discord.Embed(title=f"目次",description=f"目次\n\n1. `📜` [サーバールール](https://ptb.discord.com/channels/{guild.id}/{rules.id}/{em1.id}) (必読)\n\n2. `💬` [`💬` テキストチャンネル ルール](https://ptb.discord.com/channels/{guild.id}/{rules.id}/{em2.id})\n\n3. `🔊` [🔊 ボイスチャンネル ルール](https://ptb.discord.com/channels/{guild.id}/{rules.id}/{em3.id})",color=discord.Color.purple())
   await bot.get_channel(rules.id).send(embed=em)
-@bot.slash_command(name=f"再生成",description=f"チャンネルを再生成します")
-async def nuke(Interaction):
-    channel=Interaction.channel
+@bot.tree.command(name=f"再生成",description=f"チャンネルを再生成します")
+async def nuke(ctx: discord.Interaction):
+    channel=ctx.channel
     msg=discord.Embed(title="再生成の通知", description="チャンネルの再生成が完了しました。")
-    msg.set_footer(text=f"実行者 | {Interaction.author}・{now_time}", icon_url=Interaction.author.avatar.url)
+    msg.set_footer(text=f"実行者 | {ctx.author}・{now_time}", icon_url=ctx.author.avatar.url)
     channel2=await channel.clone()
     await channel2.edit(position=channel.position)
     await channel.delete()
     await channel2.send(embed=msg, delete_after=120)
     return
-@bot.slash_command(name=f"test",description=f"test")
+@bot.tree.command(name=f"test",description=f"test")
 @commands.is_owner()
-async def TEST(Interaction):
-  await Interaction.response.send_message(content="a",embed=None,ephemeral=True)
-  await Interaction.response.send_message(content="a",embed=None,ephemeral=True)
-@bot.slash_command(name=f"おみくじ",description=f"おみくじをします")
-async def omikuji(Interaction):
+async def TEST(ctx: discord.Interaction):
+  await ctx.response.send_message(content="a",embed=None,ephemeral=True)
+  await ctx.response.send_message(content="a",embed=None,ephemeral=True)
+@bot.tree.command(name=f"おみくじ",description=f"おみくじをします")
+async def omikuji(ctx: discord.Interaction):
   result=["大吉", "中吉", "小吉", "凶", "小凶"]
-  msg1=await Interaction.send(f"{Interaction.author.mention}さんのおみくじの結果は...   ")
+  msg1=await ctx.reseponce.send_message(f"{ctx.author.mention}さんのおみくじの結果は...   ")
   for i in range(5):
-    await msg1.edit(content=f"{Interaction.author.mention}さんのおみくじの結果まで あと{5-i}秒")
+    await msg1.edit(content=f"{ctx.author.mention}さんのおみくじの結果まで あと{5-i}秒")
     await asyncio.sleep(1)
-  await msg1.edit(content=f"{Interaction.author.mention}さんのおみくじの結果は  **" + random.choice(result) + "**  でした")
+  await msg1.edit(content=f"{ctx.author.mention}さんのおみくじの結果は  **" + random.choice(result) + "**  でした")
 
-@bot.slash_command(name=f"help",description=f"helpを表示します")
-async def help(Interaction):
+@bot.tree.command(name=f"help",description=f"helpを表示します")
+async def help(ctx: discord.Interaction):
     buttons=["⏮️","⏪","⬅️","➡️","⏩","⏭"]
     counts=0
     page1=discord.Embed(title=f"help - {bot.user.name}",description=f"ページ1 - 目次",color=0x000000)
@@ -217,11 +220,11 @@ async def help(Interaction):
     page1.add_field(name=f"ページ4 - moderateコマンド",value="モデレーター専用のコマンドを表示させる")
     page1.add_field(name=f"ページ5 - 宣伝",value="作成者の宣伝")
     page1.add_field(name=f"ページ6 - botの概要",value="botの説明")
-    page1.set_footer(text=f"ページ 1/6・実行者 | {Interaction.author} : 5分間操作がなかったら削除されます・{now_time}",icon_url=Interaction.author.avatar.url)
+    page1.set_footer(text=f"ページ 1/6・実行者 | {ctx.author.name} : 5分間操作がなかったら削除されます・{now_time}",icon_url=ctx.author.avatar.url)
     page2=discord.Embed(title=f"help - {bot.user.name}",description=f"ページ2 - Fun",color=0x000000)
     page2.add_field(name=f"{prefix}おみくじ",value="おみくじ")
     page2.add_field(name=f"{prefix}スロット", value="スロット")
-    page2.set_footer(text=f"ページ 1/6・実行者 | {Interaction.author} : 5分間操作がなかったら削除されます・{now_time}",icon_url=Interaction.author.avatar.url)
+    page2.set_footer(text=f"ページ 1/6・実行者 | {ctx.author.name} : 5分間操作がなかったら削除されます・{now_time}",icon_url=ctx.author.avatar.url)
     page3=discord.Embed(title=f"help - {bot.user.name}",description=f"ページ3 - Basic",color=0x000000)
     page3.add_field(name=f"{prefix}help ",value="helpを表示する")
     page3.add_field(name=f"{prefix}serverinfo", value="サーバーの情報を表示する")
@@ -231,26 +234,26 @@ async def help(Interaction):
     page3.add_field(name=f"{prefix}リアクションカウンター",value="指定されたメッセージのリアクション数を取得します")    
     page3.add_field(name=f"{prefix}招待回数取得リンク", value="招待リンクの使用数を取得する。 : 因数 /招待回数取得リンク url")
     page3.add_field(name=f"{prefix}招待回数取得全部", value="指定したメンバーの招待リンクの使用数を取得する。 : 因数 /招待回数取得全部 @メンバー (@メンバーなしだと自分になる)")
-    page3.set_footer(text=f"ページ 3/6・実行者 | {Interaction.author} : 5分間操作がなかったら削除されます・{now_time}",icon_url=Interaction.author.avatar.url)
+    page3.set_footer(text=f"ページ 3/6・実行者 | {ctx.author.name} : 5分間操作がなかったら削除されます・{now_time}",icon_url=ctx.author.avatar.url)
     page4=discord.Embed(title=f"help - {bot.user.name}",description=f"ページ4 - Moderation")
     page4.add_field(name=f"{prefix}purge - {prefix}clear", value="メッセージを削除する - メッセージの管理")
-    page4.set_footer(text=f"ページ 4/6・実行者 | {Interaction.author} : 5分間操作がなかったら削除されます・{now_time}",icon_url=Interaction.author.avatar.url)
+    page4.set_footer(text=f"ページ 4/6・実行者 | {ctx.author.name} : 5分間操作がなかったら削除されます・{now_time}",icon_url=ctx.author.avatar.url)
     page5=discord.Embed(title=f"宣伝 - {bot.user.name}",description=f"ページ5 - 作成者")
     page5.add_field(name=f"youtube (main)",value=f"メインアカウントは[こちら](https://www.youtube.com/@ReaCh1104Main)",inline=False)
     page5.add_field(name=f"youtube (sub)",value=f"サブアカウントは[こちら](https://www.youtube.com/@ReaCh1104Sub)",inline=False)
     page5.add_field(name=f"twiiter",value=f"ツイッターアカウントは[こちら](https://twitter.com/ReaCh1104)",inline=False)
-    page5.set_footer(text=f"ページ 5/6・実行者 | {Interaction.author} : 5分間操作がなかったら削除されます・{now_time}",icon_url=Interaction.author.avatar.url)
+    page5.set_footer(text=f"ページ 5/6・実行者 | {ctx.author.name} : 5分間操作がなかったら削除されます・{now_time}",icon_url=ctx.author.avatar.url)
     page6=discord.Embed(title=f"botの概要 - {bot.user.name}",description=f"ページ6 - 概要")
     page6.add_field(name=f"製作者",value=f"Rea#1234")
     page6.add_field(name=f"botの概要",value="作成者が趣味で作成しているbotです。")
-    page6.set_footer(text=f"ページ 6/6・実行者 | {Interaction.author} : 5分間操作がなかったら削除されます・{now_time}",icon_url=Interaction.author.avatar.url)
+    page6.set_footer(text=f"ページ 6/6・実行者 | {ctx.author.name} : 5分間操作がなかったら削除されます・{now_time}",icon_url=ctx.author.avatar.url)
     embed_list=[page1,page2,page3,page4,page5,page6]
-    embed=await Interaction.send(embed=embed_list[counts])
+    embed=await ctx.reseponce.send_message(embed=embed_list[counts])
     for button in buttons:
       await embed.add_reaction(button)
     while True:
           try:
-             reaction, user=await bot.wait_for("reaction_add",timeout=500,check=lambda reaction, user: user==Interaction.author and reaction.emoji in buttons)
+             reaction, user=await bot.wait_for("reaction_add",timeout=500,check=lambda reaction, user: user==ctx and reaction.emoji in buttons)
           except asyncio.TimeoutError:
              await embed.delete()
              break
@@ -272,11 +275,12 @@ async def help(Interaction):
             if counts !=preview_pages:
               await embed.edit(embed=embed_list[counts])
             
-@bot.slash_command(name=f"userinfo",description=f"ユーザーの詳細を取得します")
-async def userinfo(Interaction, member: discord.Option(discord.Member, description="詳細を取得するユーザーを選択してください！", required=False)):
-  botoruser=Interaction.author.bot
+@bot.tree.command(name=f"userinfo",description=f"ユーザーの詳細を取得します")
+@app_commands.describe(member="詳細を取得するユーザーを選択してください！")
+async def userinfo(ctx: discord.Interaction, member:discord.Member=None):
+  botoruser=ctx.author.bot
   if not member:
-    member=Interaction.author
+    member=ctx
   if botoruser==False:
     botoruser="いいえ"
   if botoruser==True:
@@ -302,12 +306,12 @@ async def userinfo(Interaction, member: discord.Option(discord.Member, descripti
   embed.add_field(name=f"人間:bot", value=botoruser, inline=False)
   embed.add_field(name=f"アカウント作成時間", value=member.created_at.__format__("%Z : %Y/%m/%d %H:%M:%S"), inline=False)
   embed.add_field(name=f"サーバー参加日時", value=member.joined_at.__format__("%Z : %Y/%m/%d %H:%M:%S"), inline=False)
-  await Interaction.send(embed=embed,delete_after=600)
-@bot.user_command(name="userinfo")
-async def userinfo(Interaction, member:discord.Member):
-  botoruser=Interaction.author.bot
+  await ctx.reseponce.send_message(embed=embed,delete_after=600)
+@bot.tree.context_menu(name="userinfo")
+async def userinfo(ctx: discord.Interaction, member:discord.Member):
+  botoruser=ctx.author.bot
   if not member:
-    member=Interaction.author
+    member=ctx
   if botoruser==False:
     botoruser="いいえ"
   if botoruser==True:
@@ -333,19 +337,20 @@ async def userinfo(Interaction, member:discord.Member):
   embed.add_field(name=f"人間:bot", value=botoruser, inline=False)
   embed.add_field(name=f"アカウント作成時間", value=member.created_at.__format__("%Z : %Y/%m/%d %H:%M:%S"), inline=False)
   embed.add_field(name=f"サーバー参加日時", value=member.joined_at.__format__("%Z : %Y/%m/%d %H:%M:%S"), inline=False)
-  await Interaction.send(embed=embed,delete_after=600)
-@bot.slash_command(name=f"リアクションカウンター",description="リアクションカウンター")
-async def reaction_counter(Interaction, message_id: discord.Option(str, description="取得するメッセージのidを入力してください", required=True)):
+  await ctx.reseponce.send_message(embed=embed,delete_after=600)
+@bot.tree.command(name=f"リアクションカウンター",description="リアクションカウンター")
+@app_commands.describe(message_id="取得するメッセージのidを入力してください")
+async def reaction_counter(ctx: discord.Interaction, message_id:str):
     msgid=int(message_id)
-    message = await Interaction.channel.fetch_message(msgid)
+    message = await ctx.channel.fetch_message(msgid)
     reactions = message.reactions
     content = ""
     for reaction in reactions:
         content += f"{reaction.emoji}={reaction.count}\n"
-    await Interaction.response.send_message(content=content)
-@bot.slash_command(name=f"serverinfo",description=f"サーバーの詳細を取得します")
-async def serverinfo(Interaction):
-       guild=Interaction.guild 
+    await ctx.response.send_message(content=content)
+@bot.tree.command(name=f"serverinfo",description=f"サーバーの詳細を取得します")
+async def serverinfo(ctx: discord.Interaction):
+       guild=ctx.guild 
        rolelist=[]
        for role in guild.roles:
         if role.name!="@everyone":
@@ -381,115 +386,127 @@ f"""
 ボット数 : {sum(1 for member in guild.members if member.bot)}
 """, inline=False)
        embed.add_field(name=f"サーバー設立日", value=guild.created_at.__format__("%Z : %Y/%m/%d %H:%M:%S"), inline=False)
-       embed.set_footer(text=f"実行者 | {Interaction.author}", icon_url=Interaction.author.avatar.url)
-       await Interaction.response.send_message(embed=embed,delete_after=120)
+       embed.set_footer(text=f"実行者 | {ctx.author.name}", icon_url=ctx.author.avatar.url)
+       await ctx.response.send_message(embed=embed,delete_after=120)
 
-@bot.slash_command(name=f"purge",description=f"メッセージを消去する")
-@commands.has_permissions(manage_messages=True)
-async def purge(Interaction, count: discord.Option(int, required=True, description=f"数値を入力してね")):
-  c=Interaction.channel
+@bot.tree.command(name=f"purge",description=f"メッセージを消去する")
+@app_commands.describe(count=f"数値を入力してね")
+@app_commands.default_permissions(manage_messages=True)
+async def purge(ctx: discord.Interaction, count:int):
+  c=ctx.channel
   d=await c.purge(limit=count)
-  Interactions_wait_for_delete=await Interaction.send(f"{len(d)}メッセージを削除しました : 30秒後に削除されます")
+  ctxs_wait_for_delete=await ctx.reseponce.send_message(f"{len(d)}メッセージを削除しました : 30秒後に削除されます")
   for i in range(30):
-    await Interactions_wait_for_delete.edit(content=f"{len(d)}メッセージを削除しました : {30-i}秒後に削除されます")
-  await Interactions_wait_for_delete.delete()
-  print(f"実行者 | {Interaction.author} | {prefix}purgeが使用されました- | {len(d)}メッセージが削除されました"+Fore.GREEN +f"\n----------------------------------------"+ Fore.RESET + f"")
+    await ctxs_wait_for_delete.edit(content=f"{len(d)}メッセージを削除しました : {30-i}秒後に削除されます")
+  await ctxs_wait_for_delete.delete()
+  print(f"実行者 | {ctx.author.name} | {prefix}purgeが使用されました- | {len(d)}メッセージが削除されました"+Fore.GREEN +f"\n----------------------------------------"+ Fore.RESET + f"")
 
 
-@bot.slash_command(name=f"clear",description=f"メッセージを消去する")
-@commands.has_permissions(manage_messages=True)
-async def clear(Interaction, count: discord.Option(int, required=True, description=f"数値を入力してね")):
-  c=Interaction.channel
+@bot.tree.command(name=f"clear",description=f"メッセージを消去する")
+@app_commands.describe(count=f"数値を入力してね")
+@app_commands.default_permissions(manage_messages=True)
+async def clear(ctx: discord.Interaction, count:int):
+  c=ctx.channel
   d=await c.purge(limit=count)
-  Interactions_wait_for_delete=await Interaction.send(f"{len(d)}メッセージを削除しました : 30秒後に削除されます")
+  ctxs_wait_for_delete=await ctx.reseponce.send_message(f"{len(d)}メッセージを削除しました : 30秒後に削除されます")
   for i in range(30):
-    await Interactions_wait_for_delete.edit(content=f"{len(d)}メッセージを削除しました : {30-i}秒後に削除されます")
-  await Interactions_wait_for_delete.delete()
-  print(f"実行者 | {Interaction.author} | {prefix}purgeが使用されました- | {len(d)}メッセージが削除されました"+Fore.GREEN +f"\n----------------------------------------"+ Fore.RESET + f"")
+    await ctxs_wait_for_delete.edit(content=f"{len(d)}メッセージを削除しました : {30-i}秒後に削除されます")
+  await ctxs_wait_for_delete.delete()
+  print(f"実行者 | {ctx.author.name} | {prefix}purgeが使用されました- | {len(d)}メッセージが削除されました"+Fore.GREEN +f"\n----------------------------------------"+ Fore.RESET + f"")
 
-@bot.slash_command(name=f"say",description=f"botにメッセージを発言させる")
-async def say(Interaction, *, message: discord.Option(str, required=True, description=f"メッセージを入力してね")):
-    edit_Interaction=await Interaction.send(f"メッセージ送信まで...")
+@bot.tree.command(name=f"say",description=f"botにメッセージを発言させる")
+@app_commands.describe(message="メッセージを入力してね")
+async def say(ctx: discord.Interaction,message:str):
+    if message>"@everyone":
+      return
+    edit_ctx=await ctx.reseponce.send_message(f"メッセージ送信まで...")
     for i in range(5):
-      await edit_Interaction.edit(content=f"メッセージ送信まで {5-i}秒")
+      await edit_ctx.edit(content=f"メッセージ送信まで {5-i}秒")
     await asyncio.sleep(1)
-    await edit_Interaction.edit(content=f"{message}" + f"・By {Interaction.author}")
-    print(f"実行者 | {Interaction.author} | {prefix}sayが使用されました | Interaction:{Interaction}")
+    await edit_ctx.edit(content=f"{message}" + f"・By {ctx.author.name}")
+    print(f"実行者 | {ctx.author.name} | {prefix}sayが使用されました | ctx:{ctx.author.name}")
 
-@bot.slash_command(name=f"saydm",description=f"DMにメッセージを発現させる")
-async def saydm(Interaction, member: discord.Option(discord.User, required=True, description="メッセージを送信します"), *, message: discord.Option(str, required=True, description="メッセージを入力してね")):
-  await Interaction.send(f"送信しました")
-  dmInteraction=f"{message} | Sended By <@{Interaction.author.id}>"
-  await member.send(dmInteraction)
-  print(f"実行者 | {Interaction.author} | {prefix}saydmが使用されました | Interaction:{dmInteraction} member:{member}")
+@bot.tree.command(name=f"saydm",description=f"DMにメッセージを発現させる")
+@app_commands.describe(member="メッセージを送信します",message="メッセージを入力してね")
+async def saydm(ctx: discord.Interaction, member:discord.User,message:str):
+  await ctx.reseponce.send_message(f"送信しました")
+  msg=f"{message} | Sended By <@{ctx.author.id}>"
+  await member.send(msg)
+  print(f"実行者 | {ctx.author.name} | {prefix}saydmが使用されました | message:{msg} member:{member}")
 
-@bot.slash_command(name=f"poll",description=f"アンケートをする")
-async def poll(Interaction, message1: discord.Option(str, description=f"メッセージ", required=True), reaction: discord.Option(str, description=f"1番目の選択肢", required=True), reaction_2: discord.Option(str, description=f"2番目の選択肢", required=True)):
-  embed=discord.Embed(
-  title=f"{message1}", 
-  description=f"1️⃣ : {reaction}\n2️⃣ : {reaction_2}",
-  color=0x000000)  
-  embed.set_footer(text=f"実行者 | {Interaction.author}・実行者id : {Interaction.author.id}", icon_url=Interaction.author.avatar.url)
-  Interaction=await Interaction.send(embed=embed,delete_after=120)
-  await Interaction.add_reaction(f"1️⃣")
-  await Interaction.add_reaction(f"2️⃣")
+@bot.tree.command(name=f"poll",description=f"アンケートをする")
+@app_commands.describe(message=f"メッセージ",回答=f"1番目の選択肢",回答2=f"2番目の選択肢")
+async def poll(ctx: discord.Interaction, message:str, 回答:str,回答2:str):
+  NUM=1,2,3,4,5,6,7,8,9
+  embed=discord.Embed(title=f"{message}", description=f"1️⃣ : {回答}\n2️⃣ : {回答2}",color=0x000000)  
+  embed.set_footer(text=f"実行者 | {ctx.author.name}・POLL id : {random.choice(NUM)}{random.choice(NUM)}{random.choice(NUM)}{random.choice(NUM)}{random.choice(NUM)}{random.choice(NUM)}{random.choice(NUM)}{random.choice(NUM)}{random.choice(NUM)}{random.choice(NUM)}{random.choice(NUM)}{random.choice(NUM)}{random.choice(NUM)}{random.choice(NUM)}", icon_url=ctx.author.avatar.url)
+  ctx=await ctx.reseponce.send_message(embed=embed,delete_after=120)
+  created=discord.Embed(title=f"作成しました！", description="アンケートを作成しました！", color=discord.Color.blue())
+  created.add_field(name=f"メッセージ",value=f"{message}")
+  created.add_field(name=f"回答1",value=f"{回答}")
+  created.add_field(name=f"回答2",value=f"{回答2}")
+  await ctx.followup.send(embed=created, ephemeral=True)
+  await ctx.add_reaction(f"1️⃣")
+  await ctx.add_reaction(f"2️⃣")
 
 
-@bot.slash_command(name=f"招待回数取得全部",description=f"招待リンクの使用回数を取得(全招待)")
-async def user_invite(Interaction, member:discord.Member=None):
+@bot.tree.command(name=f"招待回数取得全部",description=f"招待リンクの使用回数を取得(全招待)")
+@app_commands.describe(member="メンバー")
+async def user_invite(ctx: discord.Interaction, member:discord.Member):
     if not member:
-        member=Interaction.author
+        member=ctx
     try:
       await asyncio.sleep(0.2)
-      Interaction=await Interaction.send("取得中... 5秒")
+      ctx=await ctx.reseponce.send_message("取得中... 5秒")
       for i in range(4):
-        await Interaction.edit(content=f"取得中... {4-i}秒")
+        await ctx.edit(content=f"取得中... {4-i}秒")
       await asyncio.sleep(1)
-      invites=await Interaction.guild.invites()
+      invites=await ctx.guild.invites()
       url=discord.utils.get(invites,  inviter__id=member.id)
       use=url.uses
       use_url=url.url
-      await Interaction.edit(content=f"{member.name}さんの招待使用回数：{use} 使用url={use_url}")
+      await ctx.edit(content=f"{member.name}さんの招待使用回数：{use} 使用url={use_url}")
       await asyncio.sleep(15)
-      await Interaction.delete()
+      await ctx.delete()
     except Exception as error:
-      Interaction2=await Interaction.send(f"エラーが発生しました, エラー内容 : {error}")
+      ctx2=await ctx.reseponce.send_message(f"エラーが発生しました, エラー内容 : {error}")
       await asyncio.sleep(30)
-      await Interaction2.delete()
-      await Interaction.delete()
+      await ctx2.delete()
+      await ctx.delete()
 
 
-@bot.slash_command(name=f"招待回数取得リンク",description=f"リンクを使用して使用回数を取得")
-async def link(Interaction: discord.ApplicationContext, *, urls: discord.Option(str, required=True, description="urlを入力してね")):
-    try:
+@bot.tree.command(name=f"招待回数取得リンク",description=f"リンクを使用して使用回数を取得")
+@app_commands.describe(urls=f"urlを入力してね")
+async def link(ctx: discord.Interaction,urls:str):
+    try: 
       await asyncio.sleep(0.2)
-      Interaction=await Interaction.send("取得中... 5秒")
+      ctx=await ctx.reseponce.send_message("取得中... 5秒")
       for i in range(4):
-        await Interaction.edit(content=f"取得中... {4-i}秒")
+        await ctx.edit(content=f"取得中... {4-i}秒")
       await asyncio.sleep(1)
-      invites=await Interaction.invites()
+      invites=await ctx.invites()
       url=discord.utils.get(invites,  url=urls) 
       use=url.uses
-      await Interaction.edit(content=f"{urls} の 招待使用回数：{use}")
+      await ctx.edit(content=f"{urls} の 招待使用回数：{use}")
       await asyncio.sleep(15)
-      await Interaction.delete()
+      await ctx.delete()
     except Exception as error:
-      Interaction2=await Interaction.send(f"エラーが発生しました, エラー内容 : {error}")
+      ctx2=await ctx.reseponce.send_message(f"エラーが発生しました, エラー内容 : {error}")
       await asyncio.sleep(30)
-      await Interaction2.delete()
-      await Interaction.delete()
+      await ctx2.delete()
+      await ctx.delete()
 
 
 slot1_2=random.choice(slot)
 slot2_2=random.choice(slot)
 slot3_2=random.choice(slot)
 
-@bot.slash_command(name=f"スロット",description=f"スロットをします")
-async def slot(Interaction):
-    msg=await Interaction.send(f"{Interaction.author.name}さんのスロット結果は...")
+@bot.tree.command(name=f"スロット",description=f"スロットをします")
+async def slot(ctx: discord.Interaction):
+    msg=await ctx.reseponce.send_message(f"{ctx.author.name}さんのスロット結果は...")
     await msg.add_reaction("1️⃣")
     def check(reaction, user):
-        return user==Interaction.author and str(reaction.emoji) in ["1️⃣", "2️⃣", "3️⃣"]
+        return user==ctx and str(reaction.emoji) in ["1️⃣", "2️⃣", "3️⃣"]
     while True:
         try:
             reaction, user=await bot.wait_for("reaction_add", timeout=60, check=check)
@@ -508,23 +525,24 @@ async def slot(Interaction):
               await asyncio.sleep(0.6)
               await msg.edit(cotent=f"{slot1_2}{slot2_2}{slot3_2}")
               await asyncio.sleep(2)
-              await msg.edit(content=f"{Interaction.author.name}さんのスロット結果は{slot1_2}{slot2_2}{slot3_2}でした")
+              await msg.edit(content=f"{ctx.author.name}さんのスロット結果は{slot1_2}{slot2_2}{slot3_2}でした")
             else:
               await msg.remove_reaction(reaction)
         except asyncio.TimeoutError:
               await msg.delete()
               break
       
-@bot.slash_command(name=f"アバター",description=f"アバターを表示します")
-async def avatar(Interaction, member:discord.Option(discord.Member, required=False, description="メンバーを指定してね")):
+@bot.tree.command(name=f"アバター",description=f"アバターを表示します")
+@app_commands.describe(member="メンバーを指定してね")
+async def avatar(ctx: discord.Interaction, member:discord.Member):
       if not member:
-        member=Interaction.author
+        member=ctx
       embed=discord.Embed(title=f"{member.name}'s avatar")
       embed.set_image(url=member.avatar.url)
       embed.set_thumbnail(url=member.avatar.url)
       embed.set_author(name=f"{member}'s avatar", icon_url=member.avatar.url)
-      embed.set_footer(text=f"実行者 | {Interaction.author}",  icon_url=Interaction.author.avatar.url)
-      await Interaction.send(embed=embed, delete_after=50)
+      embed.set_footer(text=f"実行者 | {ctx.author.name}",  icon_url=ctx.author.avatar.url)
+      await ctx.reseponce.send_message(embed=embed, delete_after=50)
 
 @bot.event
 async def on_guild_join(guild):
@@ -553,9 +571,10 @@ async def on_guild_join(guild):
         datas.write(f"Server Name : {guild.name}\nServer id : {guild.id}"+"\n")
       else:
        return
-@bot.slash_command(name=f"kick",description=f"kickします。")
-@commands.has_permissions(kick_members=True)
-async def kick(Interaction, user:discord.Option(discord.User, required=True, description="kickするユーザー"), *, reason:discord.Option(str, required=False, description=f"理由を入力してね")):
+@bot.tree.command(name=f"kick",description=f"kickします。")
+@app_commands.describe(user="kickするユーザー",reason=f"理由を入力してね")
+@app_commands.default_permissions(kick_members=True)
+async def kick(ctx: discord.Interaction, user:discord.User, reason:str=None):
     if reason==None:
       reason="無し"
     embed=discord.Embed(color=discord.Color.red())
@@ -563,12 +582,13 @@ async def kick(Interaction, user:discord.Option(discord.User, required=True, des
     embed.add_field(name=f"ユーザー", value=f"{user.mention}", inline=False)
     embed.add_field(name=f"理由", value=f"{reason}", inline=False)
     embed.add_field(name=f"処罰内容",value=f"kick")
-    embed.set_footer(text=f"実行者 > {Interaction.author}・{now_time}",icon_url=Interaction.author.avatar.url)
-    await Interaction.response.send_message(embed=embed)
+    embed.set_footer(text=f"実行者 > {ctx.author.name}・{now_time}",icon_url=ctx.author.avatar.url)
+    await ctx.response.send_message(embed=embed)
     await user.kick(reason=reason)
-@bot.slash_command(name=f"ban",description=f"banします。")
-@commands.has_permissions(ban_members=True)
-async def ban(Interaction, user:discord.Option(discord.User, required=True, description="banするユーザー"), *, reason:discord.Option(str, required=False, description=f"理由を入力してね")):
+@bot.tree.command(name=f"ban",description=f"banします。")
+@app_commands.describe(user="banするユーザー",reason=f"理由を入力してね")
+@app_commands.default_permissions(ban_members=True)
+async def ban(ctx: discord.Interaction, user:discord.User, reason:str=None):
     if reason==None:
       reason="無し"
     embed=discord.Embed(color=discord.Color.red())
@@ -576,12 +596,13 @@ async def ban(Interaction, user:discord.Option(discord.User, required=True, desc
     embed.add_field(name=f"ユーザー", value=f"{user.mention}", inline=False)
     embed.add_field(name=f"理由", value=f"{reason}", inline=False)
     embed.add_field(name=f"処罰内容",value=f"ban")
-    embed.set_footer(text=f"実行者 > {Interaction.author}・{now_time}",icon_url=Interaction.author.avatar.url)
-    await Interaction.response.send_message(embed=embed)
+    embed.set_footer(text=f"実行者 > {ctx.author.name}・{now_time}",icon_url=ctx.author.avatar.url)
+    await ctx.response.send_message(embed=embed)
     await user.ban(reason=reason)
-@bot.slash_command(name=f"unban",description=f"banを解除します。")
-@commands.has_permissions(ban_members=True)
-async def unban(Interaction, user:discord.Option(discord.User, required=True, description="unbanするユーザー"), *, reason:discord.Option(str, required=False, description=f"理由を入力してね")):
+@bot.tree.command(name=f"unban",description=f"banを解除します。")
+@app_commands.describe(user="unvanするユーザー",reason=f"理由を入力してね")
+@app_commands.default_permissions(ban_members=True)
+async def unban(ctx: discord.Interaction, user:discord.User, reason:str=None):
     if reason==None:
       reason="無し"
     embed=discord.Embed(color=discord.Color.red())
@@ -589,8 +610,8 @@ async def unban(Interaction, user:discord.Option(discord.User, required=True, de
     embed.add_field(name=f"ユーザー", value=f"{user.mention}", inline=False)
     embed.add_field(name=f"理由", value=f"{reason}", inline=False)
     embed.add_field(name=f"処罰内容",value=f"unban")
-    embed.set_footer(text=f"実行者 > {Interaction.author}・{now_time}",icon_url=Interaction.author.avatar.url)
-    await Interaction.response.send_message(embed=embed)
+    embed.set_footer(text=f"実行者 > {ctx.author}・{now_time}",icon_url=ctx.avatar.url)
+    await ctx.response.send_message(embed=embed)
     await user.unban(reason=reason)
     
 try:
@@ -600,4 +621,4 @@ except:
     while True:
       print("botの起動中にエラー発生しました")
       asyncio.sleep(10)
-      quit()
+      sys.exit()
