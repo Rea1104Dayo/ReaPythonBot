@@ -278,6 +278,26 @@ async def help(ctx: discord.Interaction):
             await embed.remove_reaction(reaction, user)
             if counts !=preview_pages:
               await embed.edit(embed=embed_list[counts])
+
+@bot.tree.command(name=f"poll",description=f"アンケートをする")
+@app_commands.describe(message=f"メッセージ",回答=f"1番目の選択肢",回答2=f"2番目の選択肢")
+async def poll(ctx: discord.Interaction, message:str, 回答:str,回答2:str):
+  Number="1","2","3","4","5","6","7","8","9"
+  Answer1=0
+  Answer2=0
+  poll_id=random.choice(Number)+"".join(random.choice(Number) for _ in range(14))
+  embed=discord.Embed(title=f"{message}", description=f"1️⃣ : {回答}\n2️⃣ : {回答2}",color=0x000000)  
+  embed.set_footer(text=f"実行者 | {ctx.user.name}・POLL id : {poll_id}", icon_url=ctx.user.avatar.url)
+  msg=await ctx.channel.send(embed=embed)
+  created=discord.Embed(title=f"作成しました！", description="アンケートを作成しました！", color=discord.Color.blue())
+  created.add_field(name=f"メッセージ",value=f"{message}")
+  created.add_field(name=f"回答1",value=f"{回答}")
+  created.add_field(name=f"回答2",value=f"{回答2}")
+  await ctx.response.send_message(embed=created, ephemeral=True)
+  reactionlist=["1️⃣","2️⃣"]
+  await msg.add_reaction("1️⃣")
+  await msg.add_reaction("2️⃣")
+
 @bot.tree.command(name=f"userinfo",description=f"ユーザーの詳細を取得します")
 @app_commands.describe(member="詳細を取得するユーザーを選択してください！")
 async def userinfo(ctx: discord.Interaction, member:discord.Member=None):
@@ -442,37 +462,6 @@ async def saydm(ctx: discord.Interaction, member:discord.User,message:str):
   msg=f"{message} | Sended By <@{ctx.user.id}>"
   await member.send(msg)
   print(f"実行者 | {ctx.user.name} | {prefix}saydmが使用されました | message:{msg} member:{member}")
-
-@bot.tree.command(name=f"poll",description=f"アンケートをする")
-@app_commands.describe(message=f"メッセージ",回答=f"1番目の選択肢",回答2=f"2番目の選択肢")
-async def poll(ctx: discord.Interaction, message:str, 回答:str,回答2:str):
-  NUM=1,2,3,4,5,6,7,8,9
-  Answer1=0
-  Answer2=0
-  embed=discord.Embed(title=f"{message}", description=f"1️⃣ : {回答} : {Answer1}回投票\n2️⃣ : {回答2} : {Answer2}回投票",color=0x000000)  
-  embed.set_footer(text=f"実行者 | {ctx.user.name}・POLL id : {random.choice(NUM)}{random.choice(NUM)}{random.choice(NUM)}{random.choice(NUM)}{random.choice(NUM)}{random.choice(NUM)}{random.choice(NUM)}{random.choice(NUM)}{random.choice(NUM)}{random.choice(NUM)}{random.choice(NUM)}{random.choice(NUM)}{random.choice(NUM)}{random.choice(NUM)}", icon_url=ctx.user.avatar.url)
-  msg=await ctx.channel.send(embed=embed)
-  created=discord.Embed(title=f"作成しました！", description="アンケートを作成しました！", color=discord.Color.blue())
-  created.add_field(name=f"メッセージ",value=f"{message}")
-  created.add_field(name=f"回答1",value=f"{回答}")
-  created.add_field(name=f"回答2",value=f"{回答2}")
-  await ctx.response.send_message(embed=created, ephemeral=True)
-  reactionlist=["1️⃣","2️⃣"]
-  for reactions in reactionlist:
-    await msg.add_reaction(reactions)
-    while True:
-          try:
-             reaction, user=await bot.wait_for("reaction_add",check=lambda reaction, user: user==ctx.user and reaction.emoji in reactionlist)
-          except Exception as error:
-            print(error)
-            return
-          else:
-            if reaction.emoji=="1️⃣":
-                Answer1+=1
-            elif reaction.emoji=="2️⃣":
-                Answer2+=1
-            await msg.remove_reaction(reaction, user)
-            await msg.edit(embed=embed)
 
 @bot.tree.command(name=f"招待回数取得全部",description=f"招待リンクの使用回数を取得(全招待)")
 @app_commands.describe(member="メンバー")
