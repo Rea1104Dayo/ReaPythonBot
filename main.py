@@ -12,7 +12,6 @@ from datetime import time,timedelta,datetime
 from dotenv import load_dotenv
 from colorama import Fore,init,Back,Style
 from discord_buttons_plugin import *
-from youtube_dl import YoutubeDL
 now_time=datetime.now().__format__("%Z : %Y/%m/%d %H:%M:%S")
 os.system("title BOT")
 count=0
@@ -30,19 +29,12 @@ async def status1():
   for guild in bot.guilds:
     members +=guild.member_count - 1
     await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching,name=f"{servers} サーバー | {members} メンバー"))
-async def status2():
- await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=f"{prefix}helpでhelpを表示"))
 async def changestatus():
   while True:
     await asyncio.sleep(15)
     await status1()
-    await asyncio.sleep(15)
-    await status2()
-ctx=discord.Interaction
 
 slot=["1","2","3","4","5","6","7","8","9"]
-
-a10293846013495286=bot.get_guild(1001807427060121731)
 
 @bot.event
 async def on_ready():
@@ -61,8 +53,8 @@ async def on_ready():
   print(Fore.GREEN + f"----------------------------------------")
   print(Fore.BLUE + f"discord.py Info")
   print(Fore.BLUE + f"discord.py Version ：{discord.__version__}")
-  Synced=await bot.tree.sync()
   print(Fore.GREEN + f"----------------------------------------")
+  Synced=await bot.tree.sync()
   print(Fore.CYAN + f"{len(Synced)}個のコマンドを同期しました")
   print(Fore.GREEN + f"----------------------------------------"+ Fore.RESET + f"")
   await changestatus()
@@ -412,10 +404,10 @@ f"""
 async def purge(ctx: discord.Interaction, count:int):
   c=ctx.channel
   d=await c.purge(limit=count)
-  ctxs_wait_for_delete=await ctx.response.send_message(f"{len(d)}メッセージを削除しました : 30秒後に削除されます")
+  msgs_wait_for_delete=await ctx.response.send_message(f"{len(d)}メッセージを削除しました : 30秒後に削除されます")
   for i in range(30):
-    await ctxs_wait_for_delete.edit(content=f"{len(d)}メッセージを削除しました : {30-i}秒後に削除されます")
-  await ctxs_wait_for_delete.delete()
+    await msgs_wait_for_delete.edit(content=f"{len(d)}メッセージを削除しました : {30-i}秒後に削除されます")
+  await msgs_wait_for_delete.delete()
   print(f"実行者 | {ctx.user.name} | {prefix}purgeが使用されました- | {len(d)}メッセージが削除されました"+Fore.GREEN +f"\n----------------------------------------"+ Fore.RESET + f"")
 
 
@@ -425,10 +417,10 @@ async def purge(ctx: discord.Interaction, count:int):
 async def clear(ctx: discord.Interaction, count:int):
   c=ctx.channel
   d=await c.purge(limit=count)
-  ctxs_wait_for_delete=await ctx.response.send_message(f"{len(d)}メッセージを削除しました : 30秒後に削除されます")
+  msgs_wait_for_delete=await ctx.response.send_message(f"{len(d)}メッセージを削除しました : 30秒後に削除されます")
   for i in range(30):
-    await ctxs_wait_for_delete.edit(content=f"{len(d)}メッセージを削除しました : {30-i}秒後に削除されます")
-  await ctxs_wait_for_delete.delete()
+    await msgs_wait_for_delete.edit(content=f"{len(d)}メッセージを削除しました : {30-i}秒後に削除されます")
+  await msgs_wait_for_delete.delete()
   print(f"実行者 | {ctx.user.name} | {prefix}purgeが使用されました- | {len(d)}メッセージが削除されました"+Fore.GREEN +f"\n----------------------------------------"+ Fore.RESET + f"")
 
 @bot.tree.command(name=f"say",description=f"botにメッセージを発言させる")
@@ -455,19 +447,32 @@ async def saydm(ctx: discord.Interaction, member:discord.User,message:str):
 @app_commands.describe(message=f"メッセージ",回答=f"1番目の選択肢",回答2=f"2番目の選択肢")
 async def poll(ctx: discord.Interaction, message:str, 回答:str,回答2:str):
   NUM=1,2,3,4,5,6,7,8,9
-  embed=discord.Embed(title=f"{message}", description=f"1️⃣ : {回答}\n2️⃣ : {回答2}",color=0x000000)  
+  Answer1=0
+  Answer2=0
+  embed=discord.Embed(title=f"{message}", description=f"1️⃣ : {回答} : {Answer1}回投票\n2️⃣ : {回答2} : {Answer2}回投票",color=0x000000)  
   embed.set_footer(text=f"実行者 | {ctx.user.name}・POLL id : {random.choice(NUM)}{random.choice(NUM)}{random.choice(NUM)}{random.choice(NUM)}{random.choice(NUM)}{random.choice(NUM)}{random.choice(NUM)}{random.choice(NUM)}{random.choice(NUM)}{random.choice(NUM)}{random.choice(NUM)}{random.choice(NUM)}{random.choice(NUM)}{random.choice(NUM)}", icon_url=ctx.user.avatar.url)
-  msg=await ctx.response.send_message(embed=embed)
+  msg=await ctx.channel.send(embed=embed)
   created=discord.Embed(title=f"作成しました！", description="アンケートを作成しました！", color=discord.Color.blue())
   created.add_field(name=f"メッセージ",value=f"{message}")
   created.add_field(name=f"回答1",value=f"{回答}")
   created.add_field(name=f"回答2",value=f"{回答2}")
-  await ctx.followup.send(embed=created, ephemeral=True)
-  await msg.add_reaction(f"1️⃣")
-  await msg.add_reaction(f"2️⃣")
-  await asyncio.sleep(120)
-  await msg.delete()
-
+  await ctx.response.send_message(embed=created, ephemeral=True)
+  reactionlist=["1️⃣","2️⃣"]
+  for reactions in reactionlist:
+    await msg.add_reaction(reactions)
+    while True:
+          try:
+             reaction, user=await bot.wait_for("reaction_add",check=lambda reaction, user: user==ctx.user and reaction.emoji in reactionlist)
+          except Exception as error:
+            print(error)
+            return
+          else:
+            if reaction.emoji=="1️⃣":
+                Answer1+=1
+            elif reaction.emoji=="2️⃣":
+                Answer2+=1
+            await msg.remove_reaction(reaction, user)
+            await msg.edit(embed=embed)
 
 @bot.tree.command(name=f"招待回数取得全部",description=f"招待リンクの使用回数を取得(全招待)")
 @app_commands.describe(member="メンバー")
