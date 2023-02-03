@@ -472,8 +472,15 @@ async def purge(ctx: discord.Interaction):
 @app_commands.default_permissions(manage_messages=True)
 async def clear(ctx: discord.Interaction):
   await ctx.response.send_modal(Clears())
+class says(Modal, title=f"メッセージ"):
+  message=TextInput(label="message",placeholder="例:こんにちは",style=discord.TextStyle.short)
+  async def on_submit(self, ctx: discord.Interaction, message):
+   await ctx.response.send_message(f"送信しました")
+   msg=f"{message} | Sended By {ctx.user.mention}"
+   await ctx.channel.send(msg)
+   print(f"実行者 | {ctx.user.name} | {prefix}saydmが使用されました | message:{msg} member:{member}")
+
 @bot.tree.command(name=f"say",description=f"botにメッセージを発言させる")
-@app_commands.describe(message="メッセージを入力してね")
 async def say(ctx: discord.Interaction,message:str):
     if message>"@everyone":
       return
@@ -483,15 +490,6 @@ async def say(ctx: discord.Interaction,message:str):
     await asyncio.sleep(1)
     await edit_msg.edit(content=f"{message}" + f"・By {ctx.user.name}")
     print(f"実行者 | {ctx.user.name} | {prefix}sayが使用されました | ctx:{ctx.user.name}")
-
-@bot.tree.command(name=f"saydm",description=f"DMにメッセージを発現させる")
-@app_commands.describe(member="メッセージを送信します",message="メッセージを入力してね")
-async def saydm(ctx: discord.Interaction, member:discord.User,message:str):
-  await ctx.response.send_message(f"送信しました")
-  msg=f"{message} | Sended By <@{ctx.user.id}>"
-  await member.send(msg)
-  print(f"実行者 | {ctx.user.name} | {prefix}saydmが使用されました | message:{msg} member:{member}")
-
 @bot.tree.command(name=f"招待回数取得全部",description=f"招待リンクの使用回数を取得(全招待)")
 @app_commands.describe(member="メンバー")
 async def user_invite(ctx: discord.Interaction, member:discord.Member):
