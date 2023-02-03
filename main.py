@@ -478,18 +478,11 @@ class says(Modal, title=f"メッセージ"):
    await ctx.response.send_message(f"送信しました")
    msg=f"{message} | Sended By {ctx.user.mention}"
    await ctx.channel.send(msg)
-   print(f"実行者 | {ctx.user.name} | {prefix}saydmが使用されました | message:{msg} member:{member}")
+   print(f"実行者 | {ctx.user.name} | {prefix}sayが使用されました | message:{msg}")
 
 @bot.tree.command(name=f"say",description=f"botにメッセージを発言させる")
-async def say(ctx: discord.Interaction,message:str):
-    if message>"@everyone":
-      return
-    edit_msg=await ctx.response.send_message(f"メッセージ送信まで...")
-    for i in range(5):
-      await edit_msg.edit(content=f"メッセージ送信まで {5-i}秒")
-    await asyncio.sleep(1)
-    await edit_msg.edit(content=f"{message}" + f"・By {ctx.user.name}")
-    print(f"実行者 | {ctx.user.name} | {prefix}sayが使用されました | ctx:{ctx.user.name}")
+async def say(ctx: discord.Interaction):
+  await ctx.response.send_modal(says())
 @bot.tree.command(name=f"招待回数取得全部",description=f"招待リンクの使用回数を取得(全招待)")
 @app_commands.describe(member="メンバー")
 async def user_invite(ctx: discord.Interaction, member:discord.Member):
