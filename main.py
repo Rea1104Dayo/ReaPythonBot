@@ -1,10 +1,11 @@
 import discord
 import os,os.path,sys
 import asyncio,random,string
+import platform
 from discord import Permissions, app_commands, Embed
 from discord.ext import commands
 from discord.utils import get
-from discord.ui import View,select,Button,Modal,text_input
+from discord.ui import View,select,Button,Modal,TextInput
 from datetime import datetime
 from dotenv import load_dotenv
 from colorama import Fore,init,Back,Style
@@ -49,8 +50,9 @@ async def on_ready():
   print(Fore.RED + f"Server : {servers}")
   print(Fore.RED + f"All Server Member : {members}")
   print(Fore.GREEN + f"----------------------------------------")
-  print(Fore.BLUE + f"discord.py Info")
-  print(Fore.BLUE + f"discord.py Version ：{discord.__version__}")
+  print(Fore.BLUE + f"python Info")
+  print(Fore.BLUE + f"discord Version ：{discord.__version__}")
+  print(Fore.BLUE + f"Python Version ：{str(platform.python_version())}")
   print(Fore.GREEN + f"----------------------------------------")
   Synced=await bot.tree.sync()
   print(Fore.CYAN + f"{len(Synced)}個のコマンドを同期しました")
@@ -465,19 +467,22 @@ async def purge(ctx: discord.Interaction, count:int):
   await msgs_wait_for_delete.delete()
   print(f"実行者 | {ctx.user.name} | {prefix}purgeが使用されました- | {len(d)}メッセージが削除されました"+Fore.GREEN +f"\n----------------------------------------"+ Fore.RESET + f"")
 
+class Clears(Modal, title=f"削除する数"):
+  count=TextInput(label="Counts",placeholder="例:1",style=discord.TextStyle.short)
+  async def on_submit(self, ctx: discord.Interaction):
+    c=ctx.channel
+    d=await c.purge(limit=count)
+    try:
+      print(Fore.RESET+"["+Fore.GREEN+"+"+Fore.RESET+"]"+" Deleted")
+    except:
+      print(Fore.RESET+"["+Fore.GREEN+"-"+Fore.RESET+"]"+" RateLimited")
+      await ctx.response.send_message(embed=Embed(title=f"Clear - {bot.user.name} : {ctx.user.name}",description=f"{len(d)}メッセージを削除しました"),ephemeral=True)
+      print(f"実行者 | {ctx.user.name} | {prefix}purgeが使用されました- | {len(d)}メッセージが削除されました"+Fore.GREEN +f"\n----------------------------------------"+ Fore.RESET + f"")
 
 @bot.tree.command(name=f"clear",description=f"メッセージを消去する")
-@app_commands.describe(count=f"数値を入力してね")
 @app_commands.default_permissions(manage_messages=True)
-async def clear(ctx: discord.Interaction, count:int):
-  c=ctx.channel
-  d=await c.purge(limit=count)
-  msgs_wait_for_delete=await ctx.response.send_message(f"{len(d)}メッセージを削除しました : 30秒後に削除されます")
-  for i in range(30):
-    await msgs_wait_for_delete.edit(content=f"{len(d)}メッセージを削除しました : {30-i}秒後に削除されます")
-  await msgs_wait_for_delete.delete()
-  print(f"実行者 | {ctx.user.name} | {prefix}purgeが使用されました- | {len(d)}メッセージが削除されました"+Fore.GREEN +f"\n----------------------------------------"+ Fore.RESET + f"")
-
+async def clear(ctx: discord.Interaction):
+  await ctx.response.send_modal(Clears())
 @bot.tree.command(name=f"say",description=f"botにメッセージを発言させる")
 @app_commands.describe(message="メッセージを入力してね")
 async def say(ctx: discord.Interaction,message:str):
