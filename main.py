@@ -238,7 +238,7 @@ async def help(ctx: discord.Interaction, page: int=None):
     page2=Embed(title=f"help - {bot.user.name}",description=f"ページ2 - Fun",color=0x000000)
     page2.add_field(name=f"{prefix}おみくじ",value="おみくじ")
     page2.add_field(name=f"{prefix}スロット", value="スロット")
-    page2.set_footer(text=f"ページ 1/6・実行者 | {ctx.user.name} : 5分間操作がなかったら削除されます・{now_time}",icon_url=ctx.user.avatar.url)
+    page2.set_footer(text=f"ページ 2/6・実行者 | {ctx.user.name} : 5分間操作がなかったら削除されます・{now_time}",icon_url=ctx.user.avatar.url)
     page3=Embed(title=f"help - {bot.user.name}",description=f"ページ3 - Basic",color=0x000000)
     page3.add_field(name=f"{prefix}help ",value="helpを表示する")
     page3.add_field(name=f"{prefix}serverinfo", value="サーバーの情報を表示する")
@@ -289,7 +289,8 @@ helpを使ってくれてありがとうございます。
              reaction, user=await bot.wait_for("reaction_add",timeout=300,check=lambda reaction, user: user==ctx.user and reaction.emoji in buttonlist)
           except asyncio.TimeoutError:
              await embed.delete()
-             break
+             await ctx.followup.send(embed=Embed(title=f"Deleted Help - {bot.user.name}, {ctx.user.name}",description=f"Helpが削除されました",color=discord.Color.red()).set_footer(text=f"実行者 | {ctx.user.name}",icon_url=ctx.user.avatar.url), ephemeral=True)
+             return
           else:
             preview_pages=counts
             if reaction.emoji=="⬅️":
