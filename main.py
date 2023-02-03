@@ -1,18 +1,16 @@
 import discord
 import os,os.path,sys
 import asyncio,random,string
-import requests,json
-from discord import Permissions, app_commands, Intents, Client, Interaction, Member
+from discord import Permissions, app_commands, Embed
 from discord.ext import commands
-from discord.ext.commands import Bot
-from discord.app_commands import CommandTree
 from discord.utils import get
 from discord.ui import View,select,Button,Modal,text_input
-from datetime import time,timedelta,datetime
+from datetime import datetime
 from dotenv import load_dotenv
 from colorama import Fore,init,Back,Style
 from discord_buttons_plugin import *
-now_time=datetime.now().__format__("%Z : %Y/%m/%d %H:%M:%S")
+
+now_time=datetime.now().__format__("%Y/%m/%d %H:%M:%S")
 os.system("title BOT")
 count=0
 load_dotenv()
@@ -20,8 +18,9 @@ admin=os.getenv("Admin")
 prefix=os.getenv("prefix")
 SupportServer=os.getenv("Support_server")
 paths=os.path.dirname(os.path.realpath(__file__))
-bot=commands.Bot(command_prefix=f"{prefix}", help_command=None, intents=discord.Intents.all())
+bot=commands.Bot(command_prefix=prefix, help_command=None, intents=discord.Intents.all())
 buttons=ButtonsClient(bot)
+voice_client = None
 
 async def status1():
   servers=len(bot.guilds)
@@ -33,7 +32,6 @@ async def changestatus():
   while True:
     await asyncio.sleep(15)
     await status1()
-
 slot=["1","2","3","4","5","6","7","8","9"]
 
 @bot.event
@@ -84,14 +82,14 @@ async def gen(ctx: discord.Interaction, counts:int):
 async def ping(ctx: discord.Interaction):
   raw_ping=bot.latency
   ping=round(raw_ping * 1000)
-  embed=discord.Embed(title=f"Ping! {ping}ms", description=f"{bot.user.name}のPingは{ping}ms443です！！", color=discord.Color.brand_green())
+  embed=Embed(title=f"Ping! {ping}ms", description=f"{bot.user.name}のPingは{ping}msです！！", color=discord.Color.brand_green())
   await ctx.response.send_message(embed=embed,ephemeral=True)
   print(f"実行者 | {ctx.user.name} | {prefix}pingが使用されました"+Fore.GREEN +f""+Fore.GREEN +f"\n----------------------------------------"+ Fore.RESET + f""+ Fore.RESET + f"")
 
 
 @bot.tree.command(name=f"bot概要",description=f"botの概要を表示します")
 async def info(ctx: discord.Interaction):
-    embed=discord.Embed(title=f"{bot.user.name} : {bot.user.id}", description="pythonで作成されたdiscord botです。", color=0xeee657)
+    embed=Embed(title=f"{bot.user.name} : {bot.user.id}", description="pythonで作成されたdiscord botです。", color=0xeee657)
     embed.add_field(name=f"実行者", value=f"{ctx.user.name}")
     embed.add_field(name=f"作成者", value=f"{admin}")
     embed.add_field(name=f"導入数", value=f"{len(bot.guilds)}")
@@ -174,18 +172,18 @@ async def setup(ctx: discord.Interaction):
   await member.add_roles(role, reason="setup...")
   await me.add_roles(role2, reason="setup...")
   await me.add_roles(verify, reason="setup...")
-  em=discord.Embed(title=f"ルール",description=f"**重要：[利用規約](<https://discord.com/terms>)および[コミュニティガイドライン](<https://discord.com/guidelines>)、サーバールールを遵守してください。**\nこれらに違反した場合、タイムアウトやBAN等の処罰を受ける場合があります。\n`📜` サーバールール\n1. `😀` 発言には責任を持ち、攻撃的な口調を使わないこと。\n誹謗中傷や無責任な発言、他人の個人情報の投稿は固く禁止されています。\n2. `💥` スパムやサーバーへの荒らし行為を行わないこと。\nそれらを示唆したり称賛したりする発言・脅迫や、それらに関連する団体・ツールに関係する発言もしてはいけません。\n3. `🔞` R18コンテンツや、それに関する話題をしないこと。\n直接的な発言はもちろん、関連する話題を出したり、ニックネームやアバター画像、スレッド名等に含むことも禁止されています。\n4. `💖` 出会い、男女交際目的で利用しないこと。\n** **5. `🎭` ユーザー名の先頭に記号を付けないこと。\n** **6. `📡` 利己的な宣伝目的でSNSやコンテンツのURLを送信しないこと。\n** **7. `📢` これらに違反した行為に対して過剰に反応しないこと。\n** **\nその他、モデレーターが客観的に見て不適切と感じた場合は相応の処罰が課される場合があります。",color=discord.Color.red())
+  em=Embed(title=f"ルール",description=f"**重要：[利用規約](<https://discord.com/terms>)および[コミュニティガイドライン](<https://discord.com/guidelines>)、サーバールールを遵守してください。**\nこれらに違反した場合、タイムアウトやBAN等の処罰を受ける場合があります。\n`📜` サーバールール\n1. `😀` 発言には責任を持ち、攻撃的な口調を使わないこと。\n誹謗中傷や無責任な発言、他人の個人情報の投稿は固く禁止されています。\n2. `💥` スパムやサーバーへの荒らし行為を行わないこと。\nそれらを示唆したり称賛したりする発言・脅迫や、それらに関連する団体・ツールに関係する発言もしてはいけません。\n3. `🔞` R18コンテンツや、それに関する話題をしないこと。\n直接的な発言はもちろん、関連する話題を出したり、ニックネームやアバター画像、スレッド名等に含むことも禁止されています。\n4. `💖` 出会い、男女交際目的で利用しないこと。\n** **5. `🎭` ユーザー名の先頭に記号を付けないこと。\n** **6. `📡` 利己的な宣伝目的でSNSやコンテンツのURLを送信しないこと。\n** **7. `📢` これらに違反した行為に対して過剰に反応しないこと。\n** **\nその他、モデレーターが客観的に見て不適切と感じた場合は相応の処罰が課される場合があります。",color=discord.Color.red())
   em1=await bot.get_channel(rules.id).send(embed=em)
-  em=discord.Embed(title=f"ルール",description=f"`💬` テキストチャンネル ルール\n```テキストチャンネルを使用する際は、追加でルールが適用されます。```\n**1. `💬` チャンネルの趣旨にあった話をすること。**\n**2. `🔔` 意味もなく個人やロールをメンションしないこと。**\n**3. `❓` 質問がある場合は、可能な限り<#{quest.id}>を使用すること。** \n**4. `💥` 特定の分野に絞ったチャンネル内では、その分野を否定する発言を行わないこと。**",color=discord.Color.blue())
+  em=Embed(title=f"ルール",description=f"`💬` テキストチャンネル ルール\n```テキストチャンネルを使用する際は、追加でルールが適用されます。```\n**1. `💬` チャンネルの趣旨にあった話をすること。**\n**2. `🔔` 意味もなく個人やロールをメンションしないこと。**\n**3. `❓` 質問がある場合は、可能な限り<#{quest.id}>を使用すること。** \n**4. `💥` 特定の分野に絞ったチャンネル内では、その分野を否定する発言を行わないこと。**",color=discord.Color.blue())
   em2=await bot.get_channel(rules.id).send(embed=em)
-  em=discord.Embed(title=f"ルール",description=f"`🔊` ボイスチャンネル ルール\n```ボイスチャンネルを使用する際は、追加でルールが適用されます。```\n**1. `🔊` 爆音や雑音を流す等、他人に迷惑をかけるような行為をしないこと。**\n**2. `🚫` 有料コンテンツ(映画)等の配信や、ゲームのルールやガイドラインに違反する企画の開催・配信をしないこと。**",color=discord.Color.green())
+  em=Embed(title=f"ルール",description=f"`🔊` ボイスチャンネル ルール\n```ボイスチャンネルを使用する際は、追加でルールが適用されます。```\n**1. `🔊` 爆音や雑音を流す等、他人に迷惑をかけるような行為をしないこと。**\n**2. `🚫` 有料コンテンツ(映画)等の配信や、ゲームのルールやガイドラインに違反する企画の開催・配信をしないこと。**",color=discord.Color.green())
   em3=await bot.get_channel(rules.id).send(embed=em)
-  em=discord.Embed(title=f"目次",description=f"目次\n\n1. `📜` [サーバールール](https://ptb.discord.com/channels/{guild.id}/{rules.id}/{em1.id}) (必読)\n\n2. `💬` [`💬` テキストチャンネル ルール](https://ptb.discord.com/channels/{guild.id}/{rules.id}/{em2.id})\n\n3. `🔊` [🔊 ボイスチャンネル ルール](https://ptb.discord.com/channels/{guild.id}/{rules.id}/{em3.id})",color=discord.Color.purple())
+  em=Embed(title=f"目次",description=f"目次\n\n1. `📜` [サーバールール](https://ptb.discord.com/channels/{guild.id}/{rules.id}/{em1.id}) (必読)\n\n2. `💬` [`💬` テキストチャンネル ルール](https://ptb.discord.com/channels/{guild.id}/{rules.id}/{em2.id})\n\n3. `🔊` [🔊 ボイスチャンネル ルール](https://ptb.discord.com/channels/{guild.id}/{rules.id}/{em3.id})",color=discord.Color.purple())
   await bot.get_channel(rules.id).send(embed=em)
 @bot.tree.command(name=f"再生成",description=f"チャンネルを再生成します")
 async def nuke(ctx: discord.Interaction):
     channel=ctx.channel
-    msg=discord.Embed(title="再生成の通知", description="チャンネルの再生成が完了しました。")
+    msg=Embed(title="再生成の通知", description="チャンネルの再生成が完了しました。")
     msg.set_footer(text=f"実行者 | {ctx.user.name}・{now_time}", icon_url=ctx.user.avatar.url)
     channel2=await channel.clone()
     await channel2.edit(position=channel.position)
@@ -209,10 +207,27 @@ async def omikuji(ctx: discord.Interaction):
   await msg1.edit(content=f"{ctx.user.mention}さんのおみくじの結果は  **" + random.choice(result) + "**  でした")
 
 @bot.tree.command(name=f"help",description=f"helpを表示します")
-async def help(ctx: discord.Interaction):
-    buttonlist=["⏮️","⏪","⬅️","➡️","⏩","⏭"]
-    counts=0
-    page1=discord.Embed(title=f"help - {bot.user.name}",description=f"ページ1 - 目次",color=0x000000)
+@app_commands.describe(page="開くページ。 無しだったら1")
+async def help(ctx: discord.Interaction, page: int=None):
+    buttonlist=["❓","⏮️","⏪","⬅️","➡️","⏩","⏭","🗑️"]
+    if page==None:
+      page=1
+    if page==1:
+      page=0
+    if page==2:
+      page=1
+    if page==3:
+      page=2
+    if page==4:
+      page=3
+    if page==5:
+      page=4
+    if page==6:
+      page=5
+    if page==7:
+      page=6
+    counts=page
+    page1=Embed(title=f"help - {bot.user.name}",description=f"ページ1 - 目次",color=0x000000)
     page1.add_field(name=f"ページ1 - 目次",value="このメッセージを表示させる")
     page1.add_field(name=f"ページ2 - funコマンド",value="ゲームコマンドを表示させる")
     page1.add_field(name=f"ページ3 - Basicコマンド",value="権限無しでできるコマンドを表示させる")
@@ -220,11 +235,11 @@ async def help(ctx: discord.Interaction):
     page1.add_field(name=f"ページ5 - 宣伝",value="作成者の宣伝")
     page1.add_field(name=f"ページ6 - botの概要",value="botの説明")
     page1.set_footer(text=f"ページ 1/6・実行者 | {ctx.user.name} : 5分間操作がなかったら削除されます・{now_time}",icon_url=ctx.user.avatar.url)
-    page2=discord.Embed(title=f"help - {bot.user.name}",description=f"ページ2 - Fun",color=0x000000)
+    page2=Embed(title=f"help - {bot.user.name}",description=f"ページ2 - Fun",color=0x000000)
     page2.add_field(name=f"{prefix}おみくじ",value="おみくじ")
     page2.add_field(name=f"{prefix}スロット", value="スロット")
     page2.set_footer(text=f"ページ 1/6・実行者 | {ctx.user.name} : 5分間操作がなかったら削除されます・{now_time}",icon_url=ctx.user.avatar.url)
-    page3=discord.Embed(title=f"help - {bot.user.name}",description=f"ページ3 - Basic",color=0x000000)
+    page3=Embed(title=f"help - {bot.user.name}",description=f"ページ3 - Basic",color=0x000000)
     page3.add_field(name=f"{prefix}help ",value="helpを表示する")
     page3.add_field(name=f"{prefix}serverinfo", value="サーバーの情報を表示する")
     page3.add_field(name=f"{prefix}userinfo", value="ユーザーの情報を表示する")
@@ -234,30 +249,44 @@ async def help(ctx: discord.Interaction):
     page3.add_field(name=f"{prefix}招待回数取得リンク", value="招待リンクの使用数を取得する。 : 因数 /招待回数取得リンク url")
     page3.add_field(name=f"{prefix}招待回数取得全部", value="指定したメンバーの招待リンクの使用数を取得する。 : 因数 /招待回数取得全部 @メンバー (@メンバーなしだと自分になる)")
     page3.set_footer(text=f"ページ 3/6・実行者 | {ctx.user.name} : 5分間操作がなかったら削除されます・{now_time}",icon_url=ctx.user.avatar.url)
-    page4=discord.Embed(title=f"help - {bot.user.name}",description=f"ページ4 - Moderation")
+    page4=Embed(title=f"help - {bot.user.name}",description=f"ページ4 - Moderation")
     page4.add_field(name=f"{prefix}purge", value="メッセージを削除する - メッセージの管理")
     page4.add_field(name=f"{prefix}kick", value="ユーザーをkick - ユーザーを管理(KICK)")
     page4.add_field(name=f"{prefix}ban", value="ユーザーをban - ユーザーを管理(BAN)")
     page4.add_field(name=f"{prefix}unban", value="ユーザーのbanを解除 - ユーザーを管理(BAN)")
     page4.set_footer(text=f"ページ 4/6・実行者 | {ctx.user.name} : 5分間操作がなかったら削除されます・{now_time}",icon_url=ctx.user.avatar.url)
-    page5=discord.Embed(title=f"宣伝 - {bot.user.name}",description=f"ページ5 - 作成者")
-    page5.add_field(name=f"youtube",value=f"メインアカウントは[こちら](https://www.youtube.com/@Rea1104)",inline=False)
+    page5=Embed(title=f"宣伝 - {bot.user.name}",description=f"ページ5 - 作成者")
+    page5.add_field(name=f"youtube",value=f"youtubeアカウントは[こちら](https://www.youtube.com/@Rea1104)",inline=False)
     page5.add_field(name=f"twiiter",value=f"ツイッターアカウントは[こちら](https://twitter.com/Rea1104__)",inline=False)
+    page5.add_field(name=f"bot github",value=f"botのレポジトリは[こちら](https://github.com/Rea1104Dayo/ReaPythonBot)",inline=False)
     page5.set_footer(text=f"ページ 5/6・実行者 | {ctx.user.name} : 5分間操作がなかったら削除されます・{now_time}",icon_url=ctx.user.avatar.url)
-    page6=discord.Embed(title=f"botの概要 - {bot.user.name}",description=f"ページ6 - 概要")
+    page6=Embed(title=f"botの概要 - {bot.user.name}",description=f"ページ6 - 概要")
     page6.add_field(name=f"製作者",value=f"Rea#1234")
     page6.add_field(name=f"botの概要",value="作成者が趣味で作成しているbotです。")
     page6.set_footer(text=f"ページ 6/6・実行者 | {ctx.user.name} : 5分間操作がなかったら削除されます・{now_time}",icon_url=ctx.user.avatar.url)
-    embed_list=[page1,page2,page3,page4,page5,page6]
+    question=Embed(title=f"Question - {bot.user.name}",description=f"ページQuestion - Question")
+    question.add_field(name=f"Question",value=f"""
+❓: このページにする。
+⏮️: ページを3個戻す。
+⏪: ページを2個戻す。
+⬅️: ページを1個戻す。
+➡️: ページを1個進める。
+⏩: ページを2個進める。
+⏭: ページを3個進める。
+🗑️: helpを削除する。
+
+helpを使ってくれてありがとうございます。
+""")
+    question.set_footer(text=f"ページ Question/6・実行者 | {ctx.user.name} : 5分間操作がなかったら削除されます・{now_time}",icon_url=ctx.user.avatar.url) 
+    embed_list=[page1,page2,page3,page4,page5,page6,question]
     embed=await ctx.channel.send(embed=embed_list[counts])
-    asyncio.sleep(1.5)
-    embeds=discord.Embed(title=f"helpを作成しました!",description=f"応答が5分間なかった場合、このメッセージを削除します!",color=discord.Color.green()).set_footer(text=f"実行者 | {ctx.user.name}",icon_url=ctx.user.avatar.url)
+    embeds=Embed(title=f"helpを作成しました!",description=f"応答が5分間なかった場合、このメッセージを削除します!",color=discord.Color.green()).set_footer(text=f"実行者 | {ctx.user.name}",icon_url=ctx.user.avatar.url)
     await ctx.response.send_message(embed=embeds,ephemeral=True)
     for button in buttonlist:
       await embed.add_reaction(button)
     while True:
           try:
-             reaction, user=await bot.wait_for("reaction_add",timeout=500,check=lambda reaction, user: user==ctx.user and reaction.emoji in buttonlist)
+             reaction, user=await bot.wait_for("reaction_add",timeout=300,check=lambda reaction, user: user==ctx.user and reaction.emoji in buttonlist)
           except asyncio.TimeoutError:
              await embed.delete()
              break
@@ -275,6 +304,11 @@ async def help(ctx: discord.Interaction):
                 counts -=3
             elif reaction.emoji=="⏭":
                 counts +=3
+            elif reaction.emoji=="🗑️":
+                await embed.delete()
+                await ctx.followup.send(embed=Embed(title=f"Deleted Help - {bot.user.name}, {ctx.user.name}",description=f"Helpが削除されました",color=discord.Color.red()).set_footer(text=f"実行者 | {ctx.user.name}",icon_url=ctx.user.avatar.url), ephemeral=True)
+            elif reaction.emoji=="❓":
+                counts = 6
             await embed.remove_reaction(reaction, user)
             if counts !=preview_pages:
               await embed.edit(embed=embed_list[counts])
@@ -286,10 +320,10 @@ async def poll(ctx: discord.Interaction, message:str, 回答:str,回答2:str):
   Answer1=0
   Answer2=0
   poll_id=random.choice(Number)+"".join(random.choice(Number) for _ in range(14))
-  embed=discord.Embed(title=f"{message}", description=f"1️⃣ : {回答}\n2️⃣ : {回答2}",color=0x000000)  
+  embed=Embed(title=f"{message}", description=f"1️⃣ : {回答}\n2️⃣ : {回答2}",color=0x000000)  
   embed.set_footer(text=f"実行者 | {ctx.user.name}・POLL id : {poll_id}", icon_url=ctx.user.avatar.url)
   msg=await ctx.channel.send(embed=embed)
-  created=discord.Embed(title=f"作成しました！", description="アンケートを作成しました！", color=discord.Color.blue())
+  created=Embed(title=f"作成しました！", description="アンケートを作成しました！", color=discord.Color.blue())
   created.add_field(name=f"メッセージ",value=f"{message}")
   created.add_field(name=f"回答1",value=f"{回答}")
   created.add_field(name=f"回答2",value=f"{回答2}")
@@ -317,7 +351,7 @@ async def userinfo(ctx: discord.Interaction, member:discord.Member=None):
       rolelist.append(role.mention)
   rolelist=",".join(rolelist)
   memberroles=len(member.roles)
-  embed=discord.Embed(title=f"userinfo - {member}", color=discord.Colour.purple())
+  embed=Embed(title=f"userinfo - {member}", color=discord.Colour.purple())
   embed.set_author(name=member, icon_url=member.avatar.url)
   embed.set_thumbnail(url=member.avatar.url)
   embed.add_field(name=f"ユーザーネーム", value=member.name, inline=False)
@@ -350,7 +384,7 @@ async def userinfo(ctx: discord.Interaction, member:discord.Member):
       rolelist.append(role.mention)
   rolelist=",".join(rolelist)
   memberroles=len(member.roles)
-  embed=discord.Embed(title=f"userinfo - {member}", color=discord.Colour.purple())
+  embed=Embed(title=f"userinfo - {member}", color=discord.Colour.purple())
   embed.set_author(name=member, icon_url=member.avatar.url)
   embed.set_thumbnail(url=member.avatar.url)
   embed.add_field(name=f"ユーザーネーム", value=member.name, inline=False)
@@ -397,7 +431,7 @@ async def serverinfo(ctx: discord.Interaction):
        categorylist=",".join(categorylist)
        roles=len(guild.roles)
        roles=roles-1
-       embed=discord.Embed(title=f"Serverinfo - {guild.name}", color=discord.Colour.dark_blue())
+       embed=Embed(title=f"Serverinfo - {guild.name}", color=discord.Colour.dark_blue())
        embed.add_field(name=f"サーバーオーナー", value=f"{guild.owner.mention}", inline=False)
        embed.add_field(name=f"サーバーネーム", value=f"{guild.name}", inline=False)
        embed.add_field(name=f"サーバーid", value=f"{guild.id}", inline=False)
@@ -504,9 +538,7 @@ async def link(ctx: discord.Interaction,urls:str):
       await asyncio.sleep(15)
       await ctx.delete()
     except Exception as error:
-      ctx2=await ctx.response.send_message(f"エラーが発生しました, エラー内容 : {error}")
-      await asyncio.sleep(30)
-      await ctx2.delete()
+      ctx2=await ctx.followup.send(f"エラーが発生しました, エラー内容 : {error}",ephemeral=True)
       await ctx.delete()
 
 
@@ -550,7 +582,7 @@ async def slot(ctx: discord.Interaction):
 async def avatar(ctx: discord.Interaction, member:discord.Member):
       if not member:
         member=ctx
-      embed=discord.Embed(title=f"{member.name}'s avatar")
+      embed=Embed(title=f"{member.name}'s avatar")
       embed.set_image(url=member.avatar.url)
       embed.set_thumbnail(url=member.avatar.url)
       embed.set_author(name=f"{member}'s avatar", icon_url=member.avatar.url)
@@ -582,7 +614,7 @@ async def on_guild_join(guild):
         msg=await channel.send(f"人数スキャン中...")
         await msg.edit(content=f"導入ありがとうございます。\nあなたのサーバーは20人以上({len(guild.members)})です。")
         print(f"{guild.name}に入室しました・member数 : {len(guild.members)}")
-        datas=open(paths+"/"+str("DATAS")+".txt","a")
+        datas=open(f'DATAS.txt',"a")
         datas.write(f"Server Name : {guild.name}\nServer id : {guild.id}"+"\n")
       else:
        return
@@ -592,7 +624,7 @@ async def on_guild_join(guild):
 async def kick(ctx: discord.Interaction, user:discord.User, reason:str=None):
     if reason==None:
       reason="無し"
-    embed=discord.Embed(color=discord.Color.red())
+    embed=Embed(color=discord.Color.red())
     embed.set_author(name="kick")
     embed.add_field(name=f"ユーザー", value=f"{user.mention}", inline=False)
     embed.add_field(name=f"理由", value=f"{reason}", inline=False)
@@ -606,7 +638,7 @@ async def kick(ctx: discord.Interaction, user:discord.User, reason:str=None):
 async def ban(ctx: discord.Interaction, user:discord.User, reason:str=None):
     if reason==None:
       reason="無し"
-    embed=discord.Embed(color=discord.Color.red())
+    embed=Embed(color=discord.Color.red())
     embed.set_author(name="ban")
     embed.add_field(name=f"ユーザー", value=f"{user.mention}", inline=False)
     embed.add_field(name=f"理由", value=f"{reason}", inline=False)
@@ -620,7 +652,7 @@ async def ban(ctx: discord.Interaction, user:discord.User, reason:str=None):
 async def unban(ctx: discord.Interaction, user:discord.User, reason:str=None):
     if reason==None:
       reason="無し"
-    embed=discord.Embed(color=discord.Color.green())
+    embed=Embed(color=discord.Color.green())
     embed.set_author(name="unban")
     embed.add_field(name=f"ユーザー", value=f"{user.mention}", inline=False)
     embed.add_field(name=f"理由", value=f"{reason}", inline=False)
@@ -634,7 +666,5 @@ try:
     bot.run(os.getenv("bot_token"))
 except:
     os.system("cls")
-    while True:
-      print("botの起動中にエラー発生しました")
-      asyncio.sleep(10)
-      sys.exit()
+    print("botの起動中にエラー発生しました")
+    sys.exit()
