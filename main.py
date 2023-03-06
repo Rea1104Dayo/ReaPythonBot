@@ -2,15 +2,31 @@ import discord
 import os,os.path,sys
 import asyncio,random,string
 import platform
-from discord import Permissions, app_commands, Embed
+from discord import *
 from discord.ext import commands
 from discord.utils import get
 from discord.ui import View,select,Button,Modal,TextInput
+from discord_buttons_plugin import *
 from datetime import datetime
 from dotenv import load_dotenv
-from colorama import Fore,init,Back,Style
-from discord_buttons_plugin import *
-
+from colorama import Fore, init
+init()
+S = Fore.RESET
+w = Fore.WHITE
+b = Fore.BLACK
+g = Fore.LIGHTGREEN_EX
+y = Fore.LIGHTYELLOW_EX
+m = Fore.LIGHTMAGENTA_EX
+lc = Fore.LIGHTCYAN_EX
+lr = Fore.LIGHTRED_EX
+lb = Fore.LIGHTBLUE_EX
+M = Fore.MAGENTA
+R = Fore.RED
+B = Fore.BLUE
+G = Fore.GREEN
+W = Fore.WHITE
+Y = Fore.YELLOW
+C = Fore.CYAN
 now_time=datetime.now().__format__("%Y/%m/%d %H:%M:%S")
 os.system("title BOT")
 count=0
@@ -19,10 +35,8 @@ admin=os.getenv("Admin")
 prefix=os.getenv("prefix")
 SupportServer=os.getenv("Support_server")
 paths=os.path.dirname(os.path.realpath(__file__))
-bot=commands.Bot(command_prefix="/", help_command=None, intents=discord.Intents.all())
+bot=commands.Bot(command_prefix="RPB!", help_command=None, intents=discord.Intents.all())
 buttons=ButtonsClient(bot)
-voice_client = None
-
 async def status1():
   servers=len(bot.guilds)
   members=0
@@ -34,14 +48,13 @@ async def changestatus():
     await asyncio.sleep(15)
     await status1()
 slot=["1","2","3","4","5","6","7","8","9"]
-
 @bot.event
 async def on_ready():
   os.system("cls")
   servers=len(bot.guilds)
   members=0
   for guild in bot.guilds:
-    members +=guild.member_count - 1
+    members += guild.member_count
   print(Fore.GREEN + f"----------------------------------------")
   print(Fore.RED + f"Bot Info")
   print(Fore.RED + f"Bot Name : {bot.user.name}")
@@ -58,7 +71,17 @@ async def on_ready():
   print(Fore.CYAN + f"{len(Synced)}個のコマンドを同期しました")
   print(Fore.GREEN + f"----------------------------------------"+ Fore.RESET + f"")
   await changestatus()
-
+@bot.command()
+async def senden(ctx):
+   for member in ctx.guild.members:
+      try:
+         await member.send("""
+token joinerができるツール売ります！ 500円
+買いたい人は𝐚𝐮𝐚𝐮-𝐫𝐚𝐢𝐝𝐞𝐫 𝐬𝐮𝐩𝐩𝐨𝐫𝐭へ！
+""")
+         print(f"{Fore.RESET}[{Fore.GREEN}+{Fore.RESET}] {member.name}に送信しました")
+      except Exception as e:
+         print(f"{Fore.RESET}[{Fore.RED}-{Fore.RESET}] Error: {e}")         
 @bot.tree.command(name=f"nitrogen",description=f"nitroGen")
 @app_commands.describe(counts="nitroを生成する数")
 async def gen(ctx: discord.Interaction, counts:int):
@@ -95,7 +118,7 @@ async def info(ctx: discord.Interaction):
     embed.add_field(name=f"実行者", value=f"{ctx.user.name}")
     embed.add_field(name=f"作成者", value=f"{admin}")
     embed.add_field(name=f"導入数", value=f"{len(bot.guilds)}")
-    embed.add_field(name=f"bot招待", value=f"リンクは[こちら](https://discord.com/api/oauth2/authorize?bot_id={bot.user.id}&permissions=8&scope=bot%20applications.commands)")
+    embed.add_field(name=f"bot招待", value=f"リンクは[こちら](https://discord.com/api/oauth2/userize?bot_id={bot.user.id}&permissions=8&scope=bot%20applications.commands)")
     embed.add_field(name=f"サポートサーバー", value=f"招待リンクは[こちら]({SupportServer})")
     dele_=await ctx.response.send_message(embed=embed)
     dele=await buttons.send(
@@ -105,7 +128,7 @@ async def info(ctx: discord.Interaction):
                     Button(
                         label="招待はこちら", 
                         style=ButtonType().Link, 
-                        url=f"https://discord.com/api/oauth2/authorize?bot_id={bot.user.id}&permissions=8&scope=bot"
+                        url=f"https://discord.com/api/oauth2/userize?bot_id={bot.user.id}&permissions=8&scope=bot"
                     )
                 ])
             ]
@@ -116,72 +139,66 @@ async def info(ctx: discord.Interaction):
 @bot.tree.command(name=f"setup",description=f"設定してなかったら使ってください")
 @app_commands.default_permissions(administrator=True)
 async def setup(ctx: discord.Interaction):
-  guild=ctx.guild
-  channels=await guild.fetch_channels()
-  for channel in channels:
-      await channel.delete()
-  #チャンネルとか
-  c1=await guild.create_category("重要")
-  await c1.create_text_channel("・👌｜参加者")
-  rules=await c1.create_text_channel("・📚｜ルール")
-  await c1.create_text_channel("・✅｜認証")
-  await c1.create_text_channel("・📢｜お知らせ")
-  c2=await guild.create_category("メイン-テキスト")
-  await c2.create_text_channel("・👥｜雑談")
-  await c2.create_text_channel("・🤖｜コマンド")
-  await c2.create_text_channel("・✋｜要望")
-  quest=await c2.create_text_channel("・❓｜質問")
-  c3=await guild.create_category("メイン-ボイス")
-  await c3.create_text_channel("・🎤｜雑談用聞き専-1")
-  await c3.create_text_channel("・🎤｜雑談用聞き専-2")
-  await c3.create_text_channel("・🎤｜雑談用聞き専-3")
-  await c3.create_text_channel("・🎤｜雑談用聞き専-4")
-  await c3.create_text_channel("━━━━━━━━━━━━━━━━")
-  await c3.create_text_channel("・🎮｜ゲーム用聞き専-1")
-  await c3.create_text_channel("・🎮｜ゲーム用聞き専-2")
-  await c3.create_text_channel("・🎮｜ゲーム用聞き専-3")
-  await c3.create_text_channel("・🎮｜ゲーム用聞き専-4")
-  await c3.create_text_channel("━━━━━━━━━━━━━━━━")
-  await c3.create_text_channel("・🎧｜音楽室用-1")
-  await c3.create_text_channel("・🎧｜音楽室用-2")
-  await c3.create_text_channel("・🎧｜音楽室用-3")
-  await c3.create_text_channel("・🎧｜音楽室用-4")
-  await c3.create_voice_channel("━━━━━━━━━━━━━━━━")
-  await c3.create_voice_channel("・🎤｜雑談-1")
-  await c3.create_voice_channel("・🎤｜雑談-2")
-  await c3.create_voice_channel("・🎤｜雑談-3")
-  await c3.create_voice_channel("・🎤｜雑談-4")
-  await c3.create_voice_channel("━━━━━━━━━━━━━━━━")
-  await c3.create_voice_channel("・🎮｜ゲーム-1")
-  await c3.create_voice_channel("・🎮｜ゲーム-2")
-  await c3.create_voice_channel("・🎮｜ゲーム-3")
-  await c3.create_voice_channel("・🎮｜ゲーム-4")
-  await c3.create_voice_channel("━━━━━━━━━━━━━━━━")
-  await c3.create_voice_channel("・🎧｜音楽室-1")
-  await c3.create_voice_channel("・🎧｜音楽室-2")
-  await c3.create_voice_channel("・🎧｜音楽室-3")
-  await c3.create_voice_channel("・🎧｜音楽室-4")
-  await c3.create_voice_channel("━━━━━━━━━━━━━━━━")
-  a=await guild.create_role(name=f"Admin", permissions=discord.Permissions.all(), color=discord.Color.gold(), reason="setup...")
-  role=guild.get_role(a.id)
-  member=guild.get_member(int(ctx.user.id))
-  me=guild.get_member(int(bot.user.id))
-  b=await guild.create_role(name=f"Bot", color=discord.Color.dark_purple(), reason="setup...")
-  role2=guild.get_role(b.id)
-  verify=await guild.create_role(name=f"Verify", color=discord.Color.green(), reason="setup...")
-  role2=guild.get_role(b.id)
-  await member.add_roles(verify, reason="setup...")
-  await member.add_roles(role, reason="setup...")
-  await me.add_roles(role2, reason="setup...")
-  await me.add_roles(verify, reason="setup...")
-  em=Embed(title=f"ルール",description=f"**重要：[利用規約](<https://discord.com/terms>)および[コミュニティガイドライン](<https://discord.com/guidelines>)、サーバールールを遵守してください。**\nこれらに違反した場合、タイムアウトやBAN等の処罰を受ける場合があります。\n`📜` サーバールール\n1. `😀` 発言には責任を持ち、攻撃的な口調を使わないこと。\n誹謗中傷や無責任な発言、他人の個人情報の投稿は固く禁止されています。\n2. `💥` スパムやサーバーへの荒らし行為を行わないこと。\nそれらを示唆したり称賛したりする発言・脅迫や、それらに関連する団体・ツールに関係する発言もしてはいけません。\n3. `🔞` R18コンテンツや、それに関する話題をしないこと。\n直接的な発言はもちろん、関連する話題を出したり、ニックネームやアバター画像、スレッド名等に含むことも禁止されています。\n4. `💖` 出会い、男女交際目的で利用しないこと。\n** **5. `🎭` ユーザー名の先頭に記号を付けないこと。\n** **6. `📡` 利己的な宣伝目的でSNSやコンテンツのURLを送信しないこと。\n** **7. `📢` これらに違反した行為に対して過剰に反応しないこと。\n** **\nその他、モデレーターが客観的に見て不適切と感じた場合は相応の処罰が課される場合があります。",color=discord.Color.red())
-  em1=await bot.get_channel(rules.id).send(embed=em)
-  em=Embed(title=f"ルール",description=f"`💬` テキストチャンネル ルール\n```テキストチャンネルを使用する際は、追加でルールが適用されます。```\n**1. `💬` チャンネルの趣旨にあった話をすること。**\n**2. `🔔` 意味もなく個人やロールをメンションしないこと。**\n**3. `❓` 質問がある場合は、可能な限り<#{quest.id}>を使用すること。** \n**4. `💥` 特定の分野に絞ったチャンネル内では、その分野を否定する発言を行わないこと。**",color=discord.Color.blue())
-  em2=await bot.get_channel(rules.id).send(embed=em)
-  em=Embed(title=f"ルール",description=f"`🔊` ボイスチャンネル ルール\n```ボイスチャンネルを使用する際は、追加でルールが適用されます。```\n**1. `🔊` 爆音や雑音を流す等、他人に迷惑をかけるような行為をしないこと。**\n**2. `🚫` 有料コンテンツ(映画)等の配信や、ゲームのルールやガイドラインに違反する企画の開催・配信をしないこと。**",color=discord.Color.green())
-  em3=await bot.get_channel(rules.id).send(embed=em)
-  em=Embed(title=f"目次",description=f"目次\n\n1. `📜` [サーバールール](https://ptb.discord.com/channels/{guild.id}/{rules.id}/{em1.id}) (必読)\n\n2. `💬` [`💬` テキストチャンネル ルール](https://ptb.discord.com/channels/{guild.id}/{rules.id}/{em2.id})\n\n3. `🔊` [🔊 ボイスチャンネル ルール](https://ptb.discord.com/channels/{guild.id}/{rules.id}/{em3.id})",color=discord.Color.purple())
-  await bot.get_channel(rules.id).send(embed=em)
+    for channel in ctx.guild.channels:
+     await channel.delete()
+    for role in ctx.guild.roles:
+     if role.name != "@everyone":
+      if role.name != "ReaPythonBot":
+       await role.delete()
+    # 役職と権限の設定
+    role_settings = {
+        "*": ("default", ["administrator"]),
+        "**": ("default", ["administrator"]),
+        "***": ("default", ["administrator"]),
+        "****": ("default", ["administrator"]),
+        "*****": ("default", ["administrator"]),
+        "Owner": ("default", ["administrator"]),
+        "Admin": ("gold", ["administrator"]),
+        "Staffs": ("white", ["view_channel", "manage_webhooks", "manage_roles", 
+                            "read_message_history", "send_messages", "embed_links", 
+                            "attach_files", "use_external_emojis", "add_reactions", 
+                            "mention_everyone", "manage_messages", "manage_threads"]),
+        "Bot": ("purple", []),
+        "認証": ("green", [])
+    }
+    
+    # チャンネルのカテゴリー設定
+    category_settings = {
+        "重要": {"📢｜お知らせ": "認証", "⚠｜ルール": "everyone"},
+        "認証": {"💭｜雑談": "認証", "❓｜質問": "認証"},
+        "管理者": {"💭🔐｜管理者雑談": "管理者", "❓🔐｜管理者質問": "管理者"}
+    }
+    
+    # カテゴリー作成
+    for category_name in category_settings.keys():
+        category_overwrites = {
+            ctx.guild.default_role: discord.PermissionOverwrite(read_messages=False),
+            ctx.guild.me: discord.PermissionOverwrite(read_messages=True, manage_channels=True)
+        }
+        category = await ctx.guild.create_category(category_name, overwrites=category_overwrites)
+        
+        # チャンネル作成
+        for channel_name, channel_roles in category_settings[category_name].items():
+            channel_overwrites = {
+                ctx.guild.default_role: discord.PermissionOverwrite(read_messages=False),
+                ctx.guild.me: discord.PermissionOverwrite(read_messages=True, manage_channels=True)
+            }
+            for role_name in channel_roles.split(","):
+                if role_name in role_settings:
+                    role = discord.utils.get(ctx.guild.roles, name=role_name)
+                    if role is not None:
+                        for permission_name in role_settings[role_name][1]:
+                            setattr(channel_overwrites, permission_name, True)
+                
+            channel = await ctx.guild.create_text_channel(channel_name, overwrites=channel_overwrites, category=category)
+    for role_name in ["*", "**", "***", "****", "*****", "Owner", "Admin", "Staffs", "認証"]:
+     role = await ctx.guild.create_role(name=role_name, color=discord.Colour(role_settings[role_name][0]))
+     if role_settings[role_name][1]:
+        for permission_name in role_settings[role_name][1]:
+            permission = getattr(discord.Permissions(), permission_name)
+            await role.edit(permissions=permission, reason="Setting up roles and permissions")
+            await ctx.user.add_roles(role, reason="Setting up roles and permissions")
+
 @bot.tree.command(name=f"再生成",description=f"チャンネルを再生成します")
 async def nuke(ctx: discord.Interaction):
     channel=ctx.channel
@@ -195,7 +212,7 @@ async def nuke(ctx: discord.Interaction):
     await delll.delete()
     return
 @bot.tree.command(name=f"test",description=f"test")
-@commands.is_owner()
+@app_commands.default_permissions(administrator=True)
 async def TEST(ctx: discord.Interaction):
   await ctx.response.send_message(content="interaction!",embed=None,ephemeral=True)
   await ctx.followup.send(content="webhook!",embed=None,ephemeral=True)
@@ -228,6 +245,8 @@ async def help(ctx: discord.Interaction, page: int=None):
       page=5
     if page==7:
       page=6
+    if page>8:
+      page=7
     counts=page
     page1=Embed(title=f"help - {bot.user.name}",description=f"ページ1 - 目次",color=0x000000)
     page1.add_field(name=f"ページ1 - 目次",value="このメッセージを表示させる")
@@ -248,8 +267,6 @@ async def help(ctx: discord.Interaction, page: int=None):
     page3.add_field(name=f"{prefix}say",value="botにメッセージを送信させる")
     page3.add_field(name=f"{prefix}ping",value="pingを表示")
     page3.add_field(name=f"{prefix}リアクションカウンター",value="指定されたメッセージのリアクション数を取得します")    
-    page3.add_field(name=f"{prefix}招待回数取得リンク", value="招待リンクの使用数を取得する。 : 因数 /招待回数取得リンク url")
-    page3.add_field(name=f"{prefix}招待回数取得全部", value="指定したメンバーの招待リンクの使用数を取得する。 : 因数 /招待回数取得全部 @メンバー (@メンバーなしだと自分になる)")
     page3.set_footer(text=f"ページ 3/6・実行者 | {ctx.user.name} : 5分間操作がなかったら削除されます・{now_time}",icon_url=ctx.user.avatar.url)
     page4=Embed(title=f"help - {bot.user.name}",description=f"ページ4 - Moderation")
     page4.add_field(name=f"{prefix}purge", value="メッセージを削除する - メッセージの管理")
@@ -340,7 +357,7 @@ async def poll(ctx: discord.Interaction, message:str, 回答:str,回答2:str):
 async def userinfo(ctx: discord.Interaction, member:discord.Member=None):
   botoruser=ctx.user.bot
   if not member:
-    member=ctx
+    member=ctx.user
   if botoruser==False:
     botoruser="いいえ"
   if botoruser==True:
@@ -355,7 +372,7 @@ async def userinfo(ctx: discord.Interaction, member:discord.Member=None):
   rolelist=",".join(rolelist)
   memberroles=len(member.roles)
   embed=Embed(title=f"userinfo - {member}", color=discord.Colour.purple())
-  embed.set_author(name=member, icon_url=member.avatar.url)
+  embed.set_user(name=member, icon_url=member.avatar.url)
   embed.set_thumbnail(url=member.avatar.url)
   embed.add_field(name=f"ユーザーネーム", value=member.name, inline=False)
   embed.add_field(name=f"ユーザーハッシュタグ",value="#"+member.discriminator,inline=False)
@@ -388,7 +405,7 @@ async def userinfo(ctx: discord.Interaction, member:discord.Member):
   rolelist=",".join(rolelist)
   memberroles=len(member.roles)
   embed=Embed(title=f"userinfo - {member}", color=discord.Colour.purple())
-  embed.set_author(name=member, icon_url=member.avatar.url)
+  embed.set_user(name=member, icon_url=member.avatar.url)
   embed.set_thumbnail(url=member.avatar.url)
   embed.add_field(name=f"ユーザーネーム", value=member.name, inline=False)
   embed.add_field(name=f"ユーザーハッシュタグ",value="#"+member.discriminator,inline=False)
@@ -455,23 +472,14 @@ f"""
        await asyncio.sleep(120)
        await deleted.delete()
 
-class Clears(Modal, title=f"削除する数"):
-  count=TextInput(label="Counts",placeholder="例:1",style=discord.TextStyle.short)
-  async def on_submit(self, ctx: discord.Interaction):
-    c=ctx.channel
-    d=await c.purge(limit=count+1)
-    await ctx.response.send_message(embed=Embed(title=f"Clear - {bot.user.name} : {ctx.user.name}",description=f"{len(d)}メッセージを削除しました", color=discord.Color.green()),ephemeral=True)
-    print(f"実行者 | {ctx.user.name} | {prefix}purgeが使用されました- | {len(d)}メッセージが削除されました"+Fore.GREEN +f"\n----------------------------------------"+ Fore.RESET + f"")
-
 @bot.tree.command(name=f"purge",description=f"メッセージを消去する")
 @app_commands.default_permissions(manage_messages=True)
 async def purge(ctx: discord.Interaction):
-  await ctx.response.send_modal(Clears())
-
+  print()
 @bot.tree.command(name=f"clear",description=f"メッセージを消去する")
 @app_commands.default_permissions(manage_messages=True)
 async def clear(ctx: discord.Interaction):
-  await ctx.response.send_modal(Clears())
+  print()
 class says(Modal, title=f"メッセージ"):
   message=TextInput(label="message",placeholder="例:こんにちは",style=discord.TextStyle.short)
   async def on_submit(self, ctx: discord.Interaction, message):
@@ -479,7 +487,7 @@ class says(Modal, title=f"メッセージ"):
    msg=f"{message} | Sended By {ctx.user.mention}"
    await ctx.channel.send(msg)
    print(f"実行者 | {ctx.user.name} | {prefix}sayが使用されました | message:{msg}")
-
+  
 @bot.tree.command(name=f"say",description=f"botにメッセージを発言させる")
 async def say(ctx: discord.Interaction):
   await ctx.response.send_modal(says())
@@ -528,6 +536,7 @@ async def link(ctx: discord.Interaction,urls:str):
       await ctx.delete()
 
 
+
 slot1_2=random.choice(slot)
 slot2_2=random.choice(slot)
 slot3_2=random.choice(slot)
@@ -571,7 +580,7 @@ async def avatar(ctx: discord.Interaction, member:discord.Member):
       embed=Embed(title=f"{member.name}'s avatar")
       embed.set_image(url=member.avatar.url)
       embed.set_thumbnail(url=member.avatar.url)
-      embed.set_author(name=f"{member}'s avatar", icon_url=member.avatar.url)
+      embed.set_user(name=f"{member}'s avatar", icon_url=member.avatar.url)
       embed.set_footer(text=f"実行者 | {ctx.user.name}",  icon_url=ctx.user.avatar.url)
       dele=await ctx.response.send_message(embed=embed)
       await asyncio.sleep(120)
@@ -611,7 +620,7 @@ async def kick(ctx: discord.Interaction, user:discord.User, reason:str=None):
     if reason==None:
       reason="無し"
     embed=Embed(color=discord.Color.red())
-    embed.set_author(name="kick")
+    embed.set_user(name="kick")
     embed.add_field(name=f"ユーザー", value=f"{user.mention}", inline=False)
     embed.add_field(name=f"理由", value=f"{reason}", inline=False)
     embed.add_field(name=f"処罰内容",value=f"kick")
@@ -625,7 +634,7 @@ async def ban(ctx: discord.Interaction, user:discord.User, reason:str=None):
     if reason==None:
       reason="無し"
     embed=Embed(color=discord.Color.red())
-    embed.set_author(name="ban")
+    embed.set_user(name="ban")
     embed.add_field(name=f"ユーザー", value=f"{user.mention}", inline=False)
     embed.add_field(name=f"理由", value=f"{reason}", inline=False)
     embed.add_field(name=f"処罰内容",value=f"ban")
@@ -639,7 +648,7 @@ async def unban(ctx: discord.Interaction, user:discord.User, reason:str=None):
     if reason==None:
       reason="無し"
     embed=Embed(color=discord.Color.green())
-    embed.set_author(name="unban")
+    embed.set_user(name="unban")
     embed.add_field(name=f"ユーザー", value=f"{user.mention}", inline=False)
     embed.add_field(name=f"理由", value=f"{reason}", inline=False)
     embed.add_field(name=f"削除処罰内容",value=f"ban")
@@ -650,7 +659,7 @@ async def unban(ctx: discord.Interaction, user:discord.User, reason:str=None):
     
 try:
     bot.run(os.getenv("bot_token"))
-except:
+except Exception as e:
     os.system("cls")
-    print("botの起動中にエラー発生しました")
+    print("botの起動中にエラー発生しました {0}".format(e))
     sys.exit()
