@@ -1,5 +1,4 @@
 import os
-os.system('start old_start.bat')
 import platform
 import discord
 import os.path
