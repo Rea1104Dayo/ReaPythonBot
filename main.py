@@ -1,7 +1,12 @@
-import discord
-import os,os.path,sys
-import asyncio,random,string
+import os
+os.system('start old_start.bat')
 import platform
+import discord
+import os.path
+import sys
+import asyncio
+import random, string
+
 from discord import *
 from discord.ext import commands
 from discord.utils import get
@@ -27,61 +32,54 @@ G = Fore.GREEN
 W = Fore.WHITE
 Y = Fore.YELLOW
 C = Fore.CYAN
+emojilist="🍎","💩","❌","🍇","💎","💰","🍒"
 now_time=datetime.now().__format__("%Y/%m/%d %H:%M:%S")
 os.system("title BOT")
 count=0
 load_dotenv()
+youtube=os.getenv("Youtube_bundle_name")
+twitter=os.getenv("twitter_id")
 admin=os.getenv("Admin")
 prefix=os.getenv("prefix")
 SupportServer=os.getenv("Support_server")
 paths=os.path.dirname(os.path.realpath(__file__))
 bot=commands.Bot(command_prefix="RPB!", help_command=None, intents=discord.Intents.all())
 buttons=ButtonsClient(bot)
-async def status1():
-  servers=len(bot.guilds)
-  members=0
-  for guild in bot.guilds:
-    members +=guild.member_count - 1
-    await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching,name=f"{servers} サーバー | {members} メンバー"))
-async def changestatus():
-  while True:
-    await asyncio.sleep(15)
-    await status1()
-slot=["1","2","3","4","5","6","7","8","9"]
+@bot.tree.command(name=f"slot",description=f"ミニゲーム: slotを実行します")
+async def slot(ctx: discord.Interaction):
+    結果1=random.choice(emojilist)
+    結果2=random.choice(emojilist)
+    結果3=random.choice(emojilist)
+    embed=Embed(title=f"結果",description=f"`{結果1}{結果2}{結果3}`",color=discord.Color.yellow())
+    msg=await ctx.channel.send(embed=embed)
+    if 結果1 + 結果2 + 結果3 == 結果1*3:
+         embed=Embed(title=f"結果",description=f"`{結果1}{結果2}{結果3}`\n{ctx.author.name} さん、当たりです！",color=discord.Color.green()) #あたりがどんなんかしらん
+    else:
+         embed=Embed(title=f"結果",description=f"`{結果1}{結果2}{結果3}`\n{ctx.author.name} さん、外れです！",color=discord.Color.red())
+    await msg.edit(embed=embed)
 @bot.event
 async def on_ready():
   os.system("cls")
-  servers=len(bot.guilds)
-  members=0
-  for guild in bot.guilds:
-    members += guild.member_count
-  print(Fore.GREEN + f"----------------------------------------")
-  print(Fore.RED + f"Bot Info")
-  print(Fore.RED + f"Bot Name : {bot.user.name}")
-  print(Fore.RED + f"Bot id ：{bot.user.id}")
-  print(Fore.RED + f"Bot Status : {servers} サーバー | {members} メンバー")
-  print(Fore.RED + f"Server : {servers}")
-  print(Fore.RED + f"All Server Member : {members}")
-  print(Fore.GREEN + f"----------------------------------------")
-  print(Fore.BLUE + f"python Info")
-  print(Fore.BLUE + f"discord Version ：{discord.__version__}")
-  print(Fore.BLUE + f"Python Version ：{str(platform.python_version())}")
-  print(Fore.GREEN + f"----------------------------------------")
+  servers=bot.guilds
+  print(f"{G}----------------------------------------")
+  print(f"{R}Bot Info")
+  print(f"{R}Bot Name : {bot.user.name}")
+  print(f"{R}Bot id ：{bot.user.id}")
+  print(f"{R}Bot Status : /help｜Created By @j9wx")
+  print(f"{R}Joined Server : {servers} [{len(servers)}]")
+  print(f"{G}----------------------------------------")
+  print(f"{B}python Info")
+  print(f"{B}discord Version ：{discord.__version__}")
+  print(f"{B}Python Version ：{str(platform.python_version())}")
+  print(f"{G}----------------------------------------")
   Synced=await bot.tree.sync()
-  print(Fore.CYAN + f"{len(Synced)}個のコマンドを同期しました")
-  print(Fore.GREEN + f"----------------------------------------"+ Fore.RESET + f"")
-  await changestatus()
+  print(f"{C}{len(Synced)}個のコマンドを同期しました")
+  print(f"{G}----------------------------------------"+ S + f"")
+  await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching,name=f"/help｜Created By @j9wx"))
+bot_startedtime=datetime.now().__format__("%Y/%m/%d %H:%M:%S")
 @bot.command()
-async def senden(ctx):
-   for member in ctx.guild.members:
-      try:
-         await member.send("""
-token joinerができるツール売ります！ 500円
-買いたい人は𝐚𝐮𝐚𝐮-𝐫𝐚𝐢𝐝𝐞𝐫 𝐬𝐮𝐩𝐩𝐨𝐫𝐭へ！
-""")
-         print(f"{Fore.RESET}[{Fore.GREEN}+{Fore.RESET}] {member.name}に送信しました")
-      except Exception as e:
-         print(f"{Fore.RESET}[{Fore.RED}-{Fore.RESET}] Error: {e}")         
+async def bot_run_time(ctx):
+   await ctx.send(f"{bot_startedtime}から起動中") 
 @bot.tree.command(name=f"nitrogen",description=f"nitroGen")
 @app_commands.describe(counts="nitroを生成する数")
 async def gen(ctx: discord.Interaction, counts:int):
@@ -93,10 +91,10 @@ async def gen(ctx: discord.Interaction, counts:int):
     count=i
     count+=1
     i=count
-    print(Fore.BLUE+f"\n{i}"+Fore.GREEN+"/"+Fore.RED+f"{counts}\n\n"+Fore.LIGHTBLUE_EX+"実行者 "+Fore.RESET+"> "+Fore.GREEN+f"{ctx.user.name}")
+    print(Fore.BLUE+f"\n{i}"+G+"/"+Fore.RED+f"{counts}\n\n"+Fore.LIGHTBLUE_EX+"実行者 "+S+"> "+G+f"{ctx.user.name}")
     deleted=await ctx.channel.send(Nitro + f"\n{i}/{counts}\n実行者 > {ctx.user.name}")
     if i>counts-1:
-      print(Fore.RESET+f"\nNitroGenが終了しました"+Fore.BLACK+"-"+Fore.BLUE+f"{i}"+Fore.GREEN+"/"+Fore.RED+f"{counts}"+Fore.RESET+","+Fore.LIGHTBLUE_EX+"実行者 "+Fore.RESET+"> "+Fore.GREEN+f"{ctx.user.name}")
+      print(S+f"\nNitroGenが終了しました"+Fore.BLACK+"-"+Fore.BLUE+f"{i}"+G+"/"+Fore.RED+f"{counts}"+S+","+Fore.LIGHTBLUE_EX+"実行者 "+S+"> "+G+f"{ctx.user.name}")
       deleted2=await ctx.channel.send(f"NitroGenが終了しました-{i}/{counts}, 実行者 > {ctx.user.name}")
       await asyncio.sleep(50)
       await deleted.delete
@@ -109,7 +107,7 @@ async def ping(ctx: discord.Interaction):
   ping=round(raw_ping * 1000)
   embed=Embed(title=f"Ping! {ping}ms", description=f"{bot.user.name}のPingは{ping}msです！！", color=discord.Color.brand_green())
   await ctx.response.send_message(embed=embed,ephemeral=True)
-  print(f"実行者 | {ctx.user.name} | {prefix}pingが使用されました"+Fore.GREEN +f""+Fore.GREEN +f"\n----------------------------------------"+ Fore.RESET + f""+ Fore.RESET + f"")
+  print(f"実行者 | {ctx.user.name} | {prefix}pingが使用されました"+G +f""+G +f"\n----------------------------------------"+ S + f""+ S + f"")
 
 
 @bot.tree.command(name=f"bot概要",description=f"botの概要を表示します")
@@ -118,7 +116,7 @@ async def info(ctx: discord.Interaction):
     embed.add_field(name=f"実行者", value=f"{ctx.user.name}")
     embed.add_field(name=f"作成者", value=f"{admin}")
     embed.add_field(name=f"導入数", value=f"{len(bot.guilds)}")
-    embed.add_field(name=f"bot招待", value=f"リンクは[こちら](https://discord.com/api/oauth2/userize?bot_id={bot.user.id}&permissions=8&scope=bot%20applications.commands)")
+    embed.add_field(name=f"bot招待", value=f"リンクは[こちら](https://discord.com/api/oauth2/authorize?client_id={bot.user.id}&permissions=8&scope=bot%20applications.commands)")
     embed.add_field(name=f"サポートサーバー", value=f"招待リンクは[こちら]({SupportServer})")
     dele_=await ctx.response.send_message(embed=embed)
     dele=await buttons.send(
@@ -128,7 +126,7 @@ async def info(ctx: discord.Interaction):
                     Button(
                         label="招待はこちら", 
                         style=ButtonType().Link, 
-                        url=f"https://discord.com/api/oauth2/userize?bot_id={bot.user.id}&permissions=8&scope=bot"
+                        url=f"https://discord.com/api/oauth2/authorize?client_id={bot.user.id}&permissions=8&scope=bot%20applications.commands"
                     )
                 ])
             ]
@@ -231,22 +229,8 @@ async def help(ctx: discord.Interaction, page: int=None):
     buttonlist=["❓","⏮️","⏪","⬅️","➡️","⏩","⏭","🗑️"]
     if page==None:
       page=1
-    if page==1:
-      page=0
-    if page==2:
-      page=1
-    if page==3:
-      page=2
-    if page==4:
-      page=3
-    if page==5:
-      page=4
-    if page==6:
-      page=5
-    if page==7:
-      page=6
-    if page>8:
-      page=7
+    if not page==None:
+      page-=1
     counts=page
     page1=Embed(title=f"help - {bot.user.name}",description=f"ページ1 - 目次",color=0x000000)
     page1.add_field(name=f"ページ1 - 目次",value="このメッセージを表示させる")
@@ -275,12 +259,12 @@ async def help(ctx: discord.Interaction, page: int=None):
     page4.add_field(name=f"{prefix}unban", value="ユーザーのbanを解除 - ユーザーを管理(BAN)")
     page4.set_footer(text=f"ページ 4/6・実行者 | {ctx.user.name} : 5分間操作がなかったら削除されます・{now_time}",icon_url=ctx.user.avatar.url)
     page5=Embed(title=f"宣伝 - {bot.user.name}",description=f"ページ5 - 作成者")
-    page5.add_field(name=f"youtube",value=f"youtubeアカウントは[こちら](https://www.youtube.com/@Rea1104)",inline=False)
-    page5.add_field(name=f"twiiter",value=f"ツイッターアカウントは[こちら](https://twitter.com/Rea1104__)",inline=False)
+    page5.add_field(name=f"youtube",value=f"youtubeアカウントは[こちら](https://www.youtube.com/@{youtube})",inline=False)
+    page5.add_field(name=f"twiiter",value=f"ツイッターアカウントは[こちら](https://twitter.com/{twitter})",inline=False)
     page5.add_field(name=f"bot github",value=f"botのレポジトリは[こちら](https://github.com/Rea1104Dayo/ReaPythonBot)",inline=False)
     page5.set_footer(text=f"ページ 5/6・実行者 | {ctx.user.name} : 5分間操作がなかったら削除されます・{now_time}",icon_url=ctx.user.avatar.url)
     page6=Embed(title=f"botの概要 - {bot.user.name}",description=f"ページ6 - 概要")
-    page6.add_field(name=f"製作者",value=f"Rea#1234")
+    page6.add_field(name=f"製作者",value=f"{admin}")
     page6.add_field(name=f"botの概要",value="作成者が趣味で作成しているbotです。")
     page6.set_footer(text=f"ページ 6/6・実行者 | {ctx.user.name} : 5分間操作がなかったら削除されます・{now_time}",icon_url=ctx.user.avatar.url)
     question=Embed(title=f"Question - {bot.user.name}",description=f"ページQuestion - Question")
@@ -534,43 +518,6 @@ async def link(ctx: discord.Interaction,urls:str):
     except Exception as error:
       ctx2=await ctx.followup.send(f"エラーが発生しました, エラー内容 : {error}",ephemeral=True)
       await ctx.delete()
-
-
-
-slot1_2=random.choice(slot)
-slot2_2=random.choice(slot)
-slot3_2=random.choice(slot)
-
-@bot.tree.command(name=f"スロット",description=f"スロットをします")
-async def slot(ctx: discord.Interaction):
-    msg=await ctx.response.send_message(f"{ctx.user.name}さんのスロット結果は...")
-    await msg.add_reaction("1️⃣")
-    def check(reaction, user):
-        return user==ctx and str(reaction.emoji) in ["1️⃣", "2️⃣", "3️⃣"]
-    while True:
-        try:
-            reaction, user=await bot.wait_for("reaction_add", timeout=60, check=check)
-            if str(reaction.emoji)=="1️⃣":
-              await msg.remove_reaction(reaction)
-              await msg.edit(content=f"{slot1_2}")
-              await msg.add_reaction("2️⃣")
-            elif str(reaction.emoji)=="2️⃣":
-              await msg.remove_reaction(reaction)
-              await msg.edit(content=f"{slot1_2}{slot2_2}")
-              await msg.add_reaction("3️⃣")
-            elif str(reaction.emoji)=="3️⃣":
-              await asyncio.sleep(0.2)
-              await msg.remove_reaction(reaction)
-              await msg.edit(content=f"結果を読み込み中...")
-              await asyncio.sleep(0.6)
-              await msg.edit(cotent=f"{slot1_2}{slot2_2}{slot3_2}")
-              await asyncio.sleep(2)
-              await msg.edit(content=f"{ctx.user.name}さんのスロット結果は{slot1_2}{slot2_2}{slot3_2}でした")
-            else:
-              await msg.remove_reaction(reaction)
-        except asyncio.TimeoutError:
-              await msg.delete()
-              break
       
 @bot.tree.command(name=f"アバター",description=f"アバターを表示します")
 @app_commands.describe(member="メンバーを指定してね")
@@ -592,6 +539,7 @@ async def on_guild_join(guild):
     for channel in guild.text_channels:
       if channel.permissions_for(guild.me).send_messages:
         msg=await channel.send(f"人数スキャン中...")
+        print(f"{guild.name} ({guild.id})の人数スキャン中..")
         await asyncio.sleep(5)
         await msg.edit(content=f"申し訳ございません。\nこのボットはギルドメンバーが20人以下のサーバーでは使用することができません。\n20人を超えたら再度導入を検討してみてください。")
         await asyncio.sleep(5)
@@ -656,7 +604,7 @@ async def unban(ctx: discord.Interaction, user:discord.User, reason:str=None):
     await ctx.response.send_message(embed=embed)
     user = await bot.fetch_user(user)
     await ctx.guild.unban(user, reason=reason)
-    
+
 try:
     bot.run(os.getenv("bot_token"))
 except Exception as e:
